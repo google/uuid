@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// The uuid package generates and inspects UUIDs based on RFC 4122 and
-// DCE 1.1: Authentication and Security Services.
 package uuid
 
 import (
@@ -26,11 +24,11 @@ type Variant byte
 
 // Constants returned by Variant.
 const (
-	INVALID   = iota // Invalid UUID
-	RFC4122          // The variant specified in RFC4122
-	RESERVED         // Reserved, NCS backward compatibility.
-	MICROSOFT        // Reserved, Microsoft Corporation backward compatibility.
-	FUTURE           // Reserved for future definition.
+	Invalid   = Variant(iota) // Invalid UUID
+	RFC4122                   // The variant specified in RFC4122
+	Reserved                  // Reserved, NCS backward compatibility.
+	Microsoft                 // Reserved, Microsoft Corporation backward compatibility.
+	Future                    // Reserved for future definition.
 )
 
 var rander = rand.Reader // random function
@@ -41,10 +39,10 @@ func New() string {
 	return NewRandom().String()
 }
 
-// Decode decodes s into a UUID or returns nil.  Both the UUID form of
+// Parse decodes s into a UUID or returns nil.  Both the UUID form of
 // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx are decoded.
-func Decode(s string) UUID {
+func Parse(s string) UUID {
 	if len(s) == 36+9 {
 		if strings.ToLower(s[:9]) != "urn:uuid:" {
 			return nil
@@ -99,21 +97,21 @@ func (uuid UUID) URN() string {
 		b[:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
-// Variant returns the variant encoded in uuid.  It returns INVALID if
+// Variant returns the variant encoded in uuid.  It returns Invalid if
 // uuid is invalid.
 func (uuid UUID) Variant() Variant {
 	if len(uuid) != 16 {
-		return INVALID
+		return Invalid
 	}
 	switch {
 	case (uuid[8] & 0xc0) == 0x80:
 		return RFC4122
 	case (uuid[8] & 0xe0) == 0xc0:
-		return MICROSOFT
+		return Microsoft
 	case (uuid[8] & 0xe0) == 0xe0:
-		return FUTURE
+		return Future
 	default:
-		return RESERVED
+		return Reserved
 	}
 	panic("unreachable")
 }
@@ -138,16 +136,16 @@ func (v Variant) String() string {
 	switch v {
 	case RFC4122:
 		return "RFC4122"
-	case RESERVED:
-		return "RESERVED"
-	case MICROSOFT:
-		return "MICROSOFT"
-	case FUTURE:
-		return "FUTURE"
-	case INVALID:
-		return "INVALID"
+	case Reserved:
+		return "Reserved"
+	case Microsoft:
+		return "Microsoft"
+	case Future:
+		return "Future"
+	case Invalid:
+		return "Invalid"
 	}
-	return fmt.Sprintf("BAD_VARIANT_%d", v)
+	return fmt.Sprintf("BadVariant%d", int(v))
 }
 
 // SetRand sets the random number generator to r, which implents io.Reader.

@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -37,37 +38,53 @@ var tests = []test{
 	{"f47ac10b-58cc-e372-8567-0e02b2c3d479", 14, RFC4122, true},
 	{"f47ac10b-58cc-f372-8567-0e02b2c3d479", 15, RFC4122, true},
 
-	{"urn:uuid:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, RESERVED, true},
-	{"URN:UUID:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-1567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-2567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-3567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-4567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-5567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-6567-0e02b2c3d479", 4, RESERVED, true},
-	{"f47ac10b-58cc-4372-7567-0e02b2c3d479", 4, RESERVED, true},
+	{"urn:uuid:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
+	{"URN:UUID:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-1567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-2567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-3567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-4567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-5567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-6567-0e02b2c3d479", 4, Reserved, true},
+	{"f47ac10b-58cc-4372-7567-0e02b2c3d479", 4, Reserved, true},
 	{"f47ac10b-58cc-4372-8567-0e02b2c3d479", 4, RFC4122, true},
 	{"f47ac10b-58cc-4372-9567-0e02b2c3d479", 4, RFC4122, true},
 	{"f47ac10b-58cc-4372-a567-0e02b2c3d479", 4, RFC4122, true},
 	{"f47ac10b-58cc-4372-b567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-4372-c567-0e02b2c3d479", 4, MICROSOFT, true},
-	{"f47ac10b-58cc-4372-d567-0e02b2c3d479", 4, MICROSOFT, true},
-	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, FUTURE, true},
-	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, FUTURE, true},
+	{"f47ac10b-58cc-4372-c567-0e02b2c3d479", 4, Microsoft, true},
+	{"f47ac10b-58cc-4372-d567-0e02b2c3d479", 4, Microsoft, true},
+	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true},
+	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true},
 
-	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, INVALID, false},
-	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, INVALID, false},
-	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, INVALID, false},
-	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, INVALID, false},
-	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, INVALID, false},
-	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, INVALID, false},
+	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false},
+	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false},
+	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false},
+	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, Invalid, false},
+	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, Invalid, false},
+	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, Invalid, false},
+}
+
+var constants = []struct {
+	c interface{}
+	name string
+} {
+	{Person, "Person"},
+	{Group, "Group"},
+	{Org, "Org"},
+	{Invalid, "Invalid"},
+	{RFC4122, "RFC4122"},
+	{Reserved, "Reserved"},
+	{Microsoft, "Microsoft"},
+	{Future, "Future"},
+	{Domain(17), "Domain17"},
+	{Variant(42), "BadVariant42"},
 }
 
 func testTest(t *testing.T, in string, tt test) {
-	uuid := Decode(in)
+	uuid := Parse(in)
 	if ok := (uuid != nil); ok != tt.isuuid {
-		t.Errorf("Decode(%s) got %v expected %v\b", in, ok, tt.isuuid)
+		t.Errorf("Parse(%s) got %v expected %v\b", in, ok, tt.isuuid)
 	}
 	if uuid == nil {
 		return
@@ -85,6 +102,18 @@ func TestUUID(t *testing.T) {
 	for _, tt := range tests {
 		testTest(t, tt.in, tt)
 		testTest(t, strings.ToUpper(tt.in), tt)
+	}
+}
+
+func TestConstants(t *testing.T) {
+	for x, tt := range constants {
+		v, ok := tt.c.(fmt.Stringer)
+		if !ok {
+			t.Errorf("%x: %v: not a stringer", x, v)
+		} else if s := v.String(); s != tt.name {
+			v, _ := tt.c.(int)
+			t.Errorf("%x: Constant %T:%d gives %q, expected %q\n", x, tt.c, v, s, tt.name)
+		}
 	}
 }
 
@@ -114,7 +143,7 @@ func TestNew(t *testing.T) {
 			t.Errorf("New returned duplicated UUID %s\n", s)
 		}
 		m[s] = true
-		uuid := Decode(s)
+		uuid := Parse(s)
 		if uuid == nil {
 			t.Errorf("New returned %q which does not decode\n", s)
 			continue
@@ -182,7 +211,7 @@ func TestCoding(t *testing.T) {
 		t.Errorf("%x: urn is %s, expected %s\n", data, v, urn)
 	}
 
-	uuid := Decode(text)
+	uuid := Parse(text)
 	if !Equal(uuid, data) {
 		t.Errorf("%s: decoded to %s, expected %s\n", text, uuid, data)
 	}
@@ -236,7 +265,7 @@ func TestVersion1(t *testing.T) {
 func TestNodeAndTime(t *testing.T) {
 	// Time is February 5, 1998 12:30:23.136364800 AM GMT
 
-	uuid := Decode("7d444840-9dc0-11d1-b245-5ffdce74fad2")
+	uuid := Parse("7d444840-9dc0-11d1-b245-5ffdce74fad2")
 	node := []byte{0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2}
 
 	ts, ok := uuid.Time()
@@ -330,8 +359,8 @@ func testDCE(t *testing.T, name string, uuid UUID, domain Domain, id uint32) {
 
 func TestDCE(t *testing.T) {
 	testDCE(t, "NewDCESecurity", NewDCESecurity(42, 12345678), 42, 12345678)
-	testDCE(t, "NewDCEPerson", NewDCEPerson(), DOMAIN_PERSON, uint32(os.Getuid()))
-	testDCE(t, "NewDCEGroup", NewDCEGroup(), DOMAIN_GROUP, uint32(os.Getgid()))
+	testDCE(t, "NewDCEPerson", NewDCEPerson(), Person, uint32(os.Getuid()))
+	testDCE(t, "NewDCEGroup", NewDCEGroup(), Group, uint32(os.Getgid()))
 }
 
 type badRand struct{}
