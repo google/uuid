@@ -66,9 +66,9 @@ var tests = []test{
 }
 
 var constants = []struct {
-	c interface{}
+	c    interface{}
 	name string
-} {
+}{
 	{Person, "Person"},
 	{Group, "Group"},
 	{Org, "Org"},
