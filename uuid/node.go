@@ -4,10 +4,7 @@
 
 package uuid
 
-import (
-	"net"
-	"os"
-)
+import "net"
 
 var (
 	interfaces []net.Interface // cached list of interfaces
@@ -30,7 +27,7 @@ func NodeInterface() string {
 // SetNodeInterface never fails when name is "".
 func SetNodeInterface(name string) bool {
 	if interfaces == nil {
-		var err os.Error
+		var err error
 		interfaces, err = net.Interfaces()
 		if err != nil && name != "" {
 			return false

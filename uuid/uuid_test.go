@@ -270,16 +270,10 @@ func TestNodeAndTime(t *testing.T) {
 
 	ts, ok := uuid.Time()
 	if ok {
-		s, n := ts.UnixTime()
-		c := time.SecondsToUTC(s)
-		if c.Year != 1998 || c.Month != 2 || c.Day != 5 {
-			t.Errorf("Bad date: %d/%d/%d\n", c.Day, c.Month, c.Year)
-		}
-		if c.Hour != 0 || c.Minute != 30 || c.Second != 23 {
-			t.Errorf("Bad time\n")
-		}
-		if n != 136364800 {
-			t.Errorf("Bad faction of a second\n")
+		c := time.Unix(ts.UnixTime())
+		want := time.Date(1998, 2, 5, 0, 30, 23, 136364800, time.UTC)
+		if !c.Equal(want) {
+			t.Errorf("Got time %v, want %v", c, want)
 		}
 	} else {
 		t.Errorf("%s: bad time\n", uuid)
@@ -365,7 +359,7 @@ func TestDCE(t *testing.T) {
 
 type badRand struct{}
 
-func (r badRand) Read(buf []byte) (int, os.Error) {
+func (r badRand) Read(buf []byte) (int, error) {
 	for i, _ := range buf {
 		buf[i] = byte(i)
 	}

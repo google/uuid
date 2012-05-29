@@ -6,7 +6,7 @@ package uuid
 
 import (
 	"encoding/binary"
-	"os"
+	"time"
 )
 
 // A Time represents a time as the number of 100's of nanoseconds since 15 Oct
@@ -38,17 +38,14 @@ func (t Time) UnixTime() (sec, nsec int64) {
 // GetTime returns the current Time (100s of nanoseconds since 15 Oct 1582) and
 // adjusts the clock sequence as needed.  An error is returned if the current
 // time cannot be determined.
-func GetTime() (Time, os.Error) {
-	sec, nsec, err := os.Time()
-	if err != nil {
-		return 0, err
-	}
+func GetTime() (Time, error) {
+	t := time.Now()
 
 	// If we don't have a clock sequence already, set one.
 	if clock_seq == 0 {
 		SetClockSequence(-1)
 	}
-	now := uint64(sec)*10000000 + uint64(nsec)/100 + g1582ns100
+	now := uint64(t.UnixNano()/100) + g1582ns100
 
 	// If time has gone backwards with this clock sequence then we
 	// increment the clock sequence

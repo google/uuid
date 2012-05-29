@@ -28,7 +28,7 @@ func NewHash(h hash.Hash, space UUID, data []byte, version int) UUID {
 	h.Reset()
 	h.Write(space)
 	h.Write([]byte(data))
-	s := h.Sum()
+	s := h.Sum(nil)
 	uuid := make([]byte, 16)
 	copy(uuid, s)
 	uuid[6] = (uuid[6] & 0x0f) | uint8((version&0xf)<<4)

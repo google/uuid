@@ -11,7 +11,7 @@ import (
 // randomBits completely fills slice b with random data.
 func randomBits(b []byte) {
 	if _, err := io.ReadFull(rander, b); err != nil {
-		panic(err.String()) // rand should never fail
+		panic(err.Error()) // rand should never fail
 	}
 }
 
