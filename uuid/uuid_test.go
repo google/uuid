@@ -166,6 +166,14 @@ func clockSeq(t *testing.T, uuid UUID) int {
 }
 
 func TestClockSeq(t *testing.T) {
+	// Fake time.Now for this test to return a monotonically advancing time; restore it at end.
+	defer func(orig func() time.Time) { timeNow = orig }(timeNow)
+	monTime := time.Now()
+	timeNow = func() time.Time {
+		monTime = monTime.Add(1 * time.Second)
+		return monTime
+	}
+
 	SetClockSequence(-1)
 	uuid1 := NewUUID()
 	uuid2 := NewUUID()

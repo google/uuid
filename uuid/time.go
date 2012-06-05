@@ -24,6 +24,8 @@ const (
 var (
 	lasttime  uint64 // last time we returned
 	clock_seq uint16 // clock sequence for this run
+
+	timeNow = time.Now // for testing
 )
 
 // UnixTime converts t the number of seconds and nanoseconds using the Unix
@@ -39,7 +41,7 @@ func (t Time) UnixTime() (sec, nsec int64) {
 // adjusts the clock sequence as needed.  An error is returned if the current
 // time cannot be determined.
 func GetTime() (Time, error) {
-	t := time.Now()
+	t := timeNow()
 
 	// If we don't have a clock sequence already, set one.
 	if clock_seq == 0 {
