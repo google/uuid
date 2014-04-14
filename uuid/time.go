@@ -1,4 +1,4 @@
-// Copyright 2011 Google Inc.  All rights reserved.
+// Copyright 2014 Google Inc.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"encoding/binary"
+	"sync"
 	"time"
 )
 
@@ -22,6 +23,7 @@ const (
 )
 
 var (
+	mu        sync.Mutex
 	lasttime  uint64 // last time we returned
 	clock_seq uint16 // clock sequence for this run
 
@@ -41,11 +43,18 @@ func (t Time) UnixTime() (sec, nsec int64) {
 // adjusts the clock sequence as needed.  An error is returned if the current
 // time cannot be determined.
 func GetTime() (Time, error) {
+	defer mu.Unlock()
+	mu.Lock()
+	return getTime()
+}
+
+func getTime() (Time, error) {
+
 	t := timeNow()
 
 	// If we don't have a clock sequence already, set one.
 	if clock_seq == 0 {
-		SetClockSequence(-1)
+		setClockSequence(-1)
 	}
 	now := uint64(t.UnixNano()/100) + g1582ns100
 
@@ -67,8 +76,14 @@ func GetTime() (Time, error) {
 // ClockSequence, GetTime, or NewUUID.  (section 4.2.1.1) sequence is generated
 // for
 func ClockSequence() int {
+	defer mu.Unlock()
+	mu.Lock()
+	return clockSequence()
+}
+
+func clockSequence() int {
 	if clock_seq == 0 {
-		SetClockSequence(-1)
+		setClockSequence(-1)
 	}
 	return int(clock_seq & 0x3fff)
 }
@@ -76,6 +91,12 @@ func ClockSequence() int {
 // SetClockSeq sets the clock sequence to the lower 14 bits of seq.  Setting to
 // -1 causes a new sequence to be generated.
 func SetClockSequence(seq int) {
+	defer mu.Unlock()
+	mu.Lock()
+	setClockSequence(seq)
+}
+
+func setClockSequence(seq int) {
 	if seq == -1 {
 		var b [2]byte
 		randomBits(b[:]) // clock sequence
