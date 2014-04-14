@@ -49,7 +49,6 @@ func GetTime() (Time, error) {
 }
 
 func getTime() (Time, error) {
-
 	t := timeNow()
 
 	// If we don't have a clock sequence already, set one.
