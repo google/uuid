@@ -40,8 +40,8 @@ func (t Time) UnixTime() (sec, nsec int64) {
 }
 
 // GetTime returns the current Time (100s of nanoseconds since 15 Oct 1582) and
-// adjusts the clock sequence as needed.  An error is returned if the current
-// time cannot be determined.
+// clock sequence as well as adjusting the clock sequence as needed.  An error
+// is returned if the current time cannot be determined.
 func GetTime() (Time, uint16, error) {
 	defer mu.Unlock()
 	mu.Lock()

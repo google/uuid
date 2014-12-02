@@ -48,16 +48,16 @@ func TestClockSeqRace(t *testing.T) {
 		}()
 	}
 
-	uuid_map := make(map[string]bool)
+	uuids := make(map[string]bool)
 	cnt := 0
 	start := time.Now()
 	for u := range ch {
 		s := u.String()
-		if uuid_map[s] {
+		if uuids[s] {
 			t.Errorf("duplicate uuid after %d in %v: %s", cnt, time.Since(start), s)
 			return
 		}
-		uuid_map[s] = true
+		uuids[s] = true
 		if time.Since(start) > duration {
 			return
 		}

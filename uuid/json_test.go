@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -13,9 +14,10 @@ var testUUID = Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 
 func TestJSON(t *testing.T) {
 	type S struct {
-		ID UUID
+		ID1 UUID
+		ID2 UUID
 	}
-	s1 := S{testUUID}
+	s1 := S{ID1: testUUID}
 	data, err := json.Marshal(&s1)
 	if err != nil {
 		t.Fatal(err)
@@ -24,7 +26,7 @@ func TestJSON(t *testing.T) {
 	if err := json.Unmarshal(data, &s2); err != nil {
 		t.Fatal(err)
 	}
-	if !Equal(s1.ID, s2.ID) {
-		t.Errorf("got UUID %v, want %v", s2.ID, s1.ID)
+	if !reflect.DeepEqual(&s1, &s2) {
+		t.Errorf("got %#v, want %#v", s2, s1)
 	}
 }
