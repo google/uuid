@@ -54,8 +54,8 @@ func Parse(s string) UUID {
 	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
 		return nil
 	}
-	uuid := make([]byte, 16)
-	for i, x := range []int{
+	var uuid [16]byte
+	for i, x := range [16]int{
 		0, 2, 4, 6,
 		9, 11,
 		14, 16,
@@ -67,7 +67,7 @@ func Parse(s string) UUID {
 			uuid[i] = v
 		}
 	}
-	return uuid
+	return uuid[:]
 }
 
 // Equal returns true if uuid1 and uuid2 are equal.
