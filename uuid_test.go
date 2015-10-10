@@ -388,3 +388,42 @@ func TestBadRand(t *testing.T) {
 		t.Errorf("unexecpted duplicates, got %q\n", uuid1)
 	}
 }
+
+func BenchmarkParse(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+		if uuid == nil {
+			b.Fatal("invalid uuid")
+		}
+	}
+}
+
+func BenchmarkNew(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		New()
+	}
+}
+
+func BenchmarkUUID_String(b *testing.B) {
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if uuid == nil {
+		b.Fatal("invalid uuid")
+	}
+	for i := 0; i < b.N; i++ {
+		if uuid.String() == "" {
+			b.Fatal("invalid uuid")
+		}
+	}
+}
+
+func BenchmarkUUID_URN(b *testing.B) {
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if uuid == nil {
+		b.Fatal("invalid uuid")
+	}
+	for i := 0; i < b.N; i++ {
+		if uuid.URN() == "" {
+			b.Fatal("invalid uuid")
+		}
+	}
+}
