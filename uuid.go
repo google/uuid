@@ -83,15 +83,7 @@ func (uuid UUID) String() string {
 		return ""
 	}
 	var buf [36]byte
-	hex.Encode(buf[:], uuid[:4])
-	buf[8] = '-'
-	hex.Encode(buf[9:13], uuid[4:6])
-	buf[13] = '-'
-	hex.Encode(buf[14:18], uuid[6:8])
-	buf[18] = '-'
-	hex.Encode(buf[19:23], uuid[8:10])
-	buf[23] = '-'
-	hex.Encode(buf[24:], uuid[10:])
+	encodeHex(buf[:], uuid)
 	return string(buf[:])
 }
 
@@ -103,17 +95,20 @@ func (uuid UUID) URN() string {
 	}
 	var buf [36 + 9]byte
 	copy(buf[:], "urn:uuid:")
-	_buf := buf[9:]
-	hex.Encode(_buf[:], uuid[:4])
-	_buf[8] = '-'
-	hex.Encode(_buf[9:13], uuid[4:6])
-	_buf[13] = '-'
-	hex.Encode(_buf[14:18], uuid[6:8])
-	_buf[18] = '-'
-	hex.Encode(_buf[19:23], uuid[8:10])
-	_buf[23] = '-'
-	hex.Encode(_buf[24:], uuid[10:])
+	encodeHex(buf[9:], uuid)
 	return string(buf[:])
+}
+
+func encodeHex(dst []byte, uuid UUID) {
+	hex.Encode(dst[:], uuid[:4])
+	dst[8] = '-'
+	hex.Encode(dst[9:13], uuid[4:6])
+	dst[13] = '-'
+	hex.Encode(dst[14:18], uuid[6:8])
+	dst[18] = '-'
+	hex.Encode(dst[19:23], uuid[8:10])
+	dst[23] = '-'
+	hex.Encode(dst[24:], uuid[10:])
 }
 
 // Variant returns the variant encoded in uuid.  It returns Invalid if
