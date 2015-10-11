@@ -101,9 +101,19 @@ func (uuid UUID) URN() string {
 	if uuid == nil || len(uuid) != 16 {
 		return ""
 	}
-	b := []byte(uuid)
-	return fmt.Sprintf("urn:uuid:%08x-%04x-%04x-%04x-%012x",
-		b[:4], b[4:6], b[6:8], b[8:10], b[10:])
+	var buf [36 + 9]byte
+	copy(buf[:], "urn:uuid:")
+	_buf := buf[9:]
+	hex.Encode(_buf[:], uuid[:4])
+	_buf[8] = '-'
+	hex.Encode(_buf[9:13], uuid[4:6])
+	_buf[13] = '-'
+	hex.Encode(_buf[14:18], uuid[6:8])
+	_buf[18] = '-'
+	hex.Encode(_buf[19:23], uuid[8:10])
+	_buf[23] = '-'
+	hex.Encode(_buf[24:], uuid[10:])
+	return string(buf[:])
 }
 
 // Variant returns the variant encoded in uuid.  It returns Invalid if
