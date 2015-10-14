@@ -316,7 +316,7 @@ func TestNodeID(t *testing.T) {
 	}
 	node1 := NodeID()
 	if node1 == nil {
-		t.Errorf("NodeID nil after SetNodeInterface\n", s)
+		t.Error("NodeID nil after SetNodeInterface", s)
 	}
 	SetNodeID(nid)
 	s = NodeInterface()
@@ -325,10 +325,10 @@ func TestNodeID(t *testing.T) {
 	}
 	node2 := NodeID()
 	if node2 == nil {
-		t.Errorf("NodeID nil after SetNodeID\n", s)
+		t.Error("NodeID nil after SetNodeID", s)
 	}
 	if bytes.Equal(node1, node2) {
-		t.Errorf("NodeID not changed after SetNodeID\n", s)
+		t.Error("NodeID not changed after SetNodeID", s)
 	} else if !bytes.Equal(nid, node2) {
 		t.Errorf("NodeID is %x, expected %x\n", node2, nid)
 	}
