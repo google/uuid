@@ -56,3 +56,12 @@ func TestScan(t *testing.T) {
 		t.Error("attempting to parse an invalid byte UUID returned an incorrect error message")
 	}
 }
+
+func TestValue(t *testing.T) {
+	stringTest := "f47ac10b-58cc-0372-8567-0e02b2c3d479"
+	uuid := Parse(stringTest)
+	val, _ := uuid.Value()
+	if val != stringTest {
+		t.Error("Value() did not return expected string")
+	}
+}
