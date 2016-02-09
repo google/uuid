@@ -113,7 +113,6 @@ func (uuid UUID) Variant() Variant {
 	default:
 		return Reserved
 	}
-	panic("unreachable")
 }
 
 // Version returns the version of uuid.  It returns false if uuid is not
