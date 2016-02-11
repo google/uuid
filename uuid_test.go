@@ -432,19 +432,18 @@ func TestBadRand(t *testing.T) {
 }
 
 func TestUUID_Array(t *testing.T) {
-	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
-	expect := []byte{
+	expect := Array{
 		0xf4, 0x7a, 0xc1, 0x0b,
 		0x58, 0xcc,
 		0x03, 0x72,
 		0x85, 0x67,
 		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
 	}
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 	if uuid == nil {
 		t.Fatal("invalid uuid")
 	}
-	array := uuid.Array()
-	if !bytes.Equal(array[:], expect) {
+	if uuid.Array() != expect {
 		t.Fatal("invalid array")
 	}
 }
@@ -506,20 +505,19 @@ func BenchmarkUUID_URN(b *testing.B) {
 }
 
 func BenchmarkUUID_Array(b *testing.B) {
-	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
-	expect := []byte{
+	expect := Array{
 		0xf4, 0x7a, 0xc1, 0x0b,
 		0x58, 0xcc,
 		0x03, 0x72,
 		0x85, 0x67,
 		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
 	}
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 	if uuid == nil {
 		b.Fatal("invalid uuid")
 	}
 	for i := 0; i < b.N; i++ {
-		array := uuid.Array()
-		if !bytes.Equal(array[:], expect) {
+		if uuid.Array() != expect {
 			b.Fatal("invalid array")
 		}
 	}
