@@ -21,6 +21,12 @@ func (uuid Array) UUID() UUID {
 	return uuid[:]
 }
 
+// String returns the string representation of uuid,
+// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+func (uuid Array) String() string {
+	return uuid.UUID().String()
+}
+
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
 // 4122.
 type UUID []byte
