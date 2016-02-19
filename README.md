@@ -1,7 +1,11 @@
-This project was automatically exported from code.google.com/p/go-uuid
+**This package is currently in development and the API may not be stable.**
+
+The API will become stable with v1.
 
 # uuid ![build status](https://travis-ci.org/google/uuid.svg?branch=master)
-The uuid package generates and inspects UUIDs based on [RFC 412](http://tools.ietf.org/html/rfc4122) and DCE 1.1: Authentication and Security Services. 
+The uuid package generates and inspects UUIDs based on
+[RFC 412](http://tools.ietf.org/html/rfc4122)
+and DCE 1.1: Authentication and Security Services. 
 
 This package is based on the github.com/pborman/uuid package (previously named
 code.google.com/p/go-uuid).  It differs from these earlier packages in that
@@ -14,5 +18,6 @@ change is the ability to represent an invalid UUID (vs a NIL UUID).
 ###### Documentation 
 [![GoDoc](https://godoc.org/github.com/google/uuid?status.svg)](http://godoc.org/github.com/google/uuid)
 
-Full `go doc` style documentation for the package can be viewed online without installing this package by using the GoDoc site here: 
+Full `go doc` style documentation for the package can be viewed online without
+installing this package by using the GoDoc site here: 
 http://godoc.org/github.com/google/uuid
