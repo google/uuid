@@ -1,4 +1,4 @@
-// Copyright 2015 Google Inc.  All rights reserved.
+// Copyright 2016 Google Inc.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,9 +11,12 @@ import (
 
 func TestScan(t *testing.T) {
 	var stringTest string = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
-	var byteTest []byte = Parse(stringTest)
 	var badTypeTest int = 6
 	var invalidTest string = "f47ac10b-58cc-0372-8567-0e02b2c3d4"
+
+	byteTest := make([]byte, 16)
+	byteTestUUID := MustParse(stringTest)
+	copy(byteTest, byteTestUUID[:])
 
 	// sunny day tests
 
@@ -63,32 +66,35 @@ func TestScan(t *testing.T) {
 
 	// empty tests
 
-	uuid = nil
+	uuid = UUID{}
 	var emptySlice []byte
 	err = (&uuid).Scan(emptySlice)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if uuid != nil {
-		t.Error("UUID was not nil after scanning empty byte slice")
+	for _, v := range uuid {
+		if v != 0 {
+			t.Error("UUID was not nil after scanning empty byte slice")
+		}
 	}
 
-	uuid = nil
+	uuid = UUID{}
 	var emptyString string
 	err = (&uuid).Scan(emptyString)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if uuid != nil {
-		t.Error("UUID was not nil after scanning empty string")
+	for _, v := range uuid {
+		if v != 0 {
+			t.Error("UUID was not nil after scanning empty byte slice")
+		}
 	}
 }
 
 func TestValue(t *testing.T) {
 	stringTest := "f47ac10b-58cc-0372-8567-0e02b2c3d479"
-	uuid := Parse(stringTest)
+	uuid := MustParse(stringTest)
 	val, _ := uuid.Value()
 	if val != stringTest {
 		t.Error("Value() did not return expected string")

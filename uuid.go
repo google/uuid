@@ -1,40 +1,27 @@
-// Copyright 2011 Google Inc.  All rights reserved.
+// Copyright 2016 Google Inc.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package uuid
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"unsafe"
 )
-
-// Array is a pass-by-value UUID that can be used as an effecient key in a map.
-type Array [16]byte
-
-// UUID converts uuid into a slice.
-func (uuid Array) UUID() UUID {
-	return uuid[:]
-}
-
-// String returns the string representation of uuid,
-// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
-func (uuid Array) String() string {
-	return uuid.UUID().String()
-}
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
 // 4122.
-type UUID []byte
+type UUID [16]byte
 
-// A Version represents a UUIDs version.
+// A Version represents a UUID's version.
 type Version byte
 
-// A Variant represents a UUIDs variant.
+// A Variant represents a UUID's variant.
 type Variant byte
 
 // Constants returned by Variant.
@@ -48,28 +35,23 @@ const (
 
 var rander = rand.Reader // random function
 
-// New returns a new random (version 4) UUID as a string.  It is a convenience
-// function for NewRandom().String().
-func New() string {
-	return NewRandom().String()
-}
-
-// Parse decodes s into a UUID or returns nil.  Both the UUID form of
+// Parse decodes s into a UUID or returns an error.  Both the UUID form of
 // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx are decoded.
-func Parse(s string) UUID {
-	if len(s) == 36+9 {
+func Parse(s string) (UUID, error) {
+	var uuid UUID
+	if len(s) != 36 {
+		if len(s) != 36+9 {
+			return uuid, fmt.Errorf("invalid UUID length: %d", len(s))
+		}
 		if strings.ToLower(s[:9]) != "urn:uuid:" {
-			return nil
+			return uuid, fmt.Errorf("invalid urn prefix: %q", s[:9])
 		}
 		s = s[9:]
-	} else if len(s) != 36 {
-		return nil
 	}
 	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-		return nil
+		return uuid, errors.New("invalid UUID format")
 	}
-	var uuid [16]byte
 	for i, x := range [16]int{
 		0, 2, 4, 6,
 		9, 11,
@@ -77,36 +59,35 @@ func Parse(s string) UUID {
 		19, 21,
 		24, 26, 28, 30, 32, 34} {
 		if v, ok := xtob(s[x:]); !ok {
-			return nil
+			return uuid, errors.New("invalid UUID format")
 		} else {
 			uuid[i] = v
 		}
 	}
-	return uuid[:]
+	return uuid, nil
 }
 
-// Equal returns true if uuid1 and uuid2 are equal.
-func Equal(uuid1, uuid2 UUID) bool {
-	return bytes.Equal(uuid1, uuid2)
+// ParseBytes is like Parse, exect it parses a byte slice instead of a string.
+func ParseBytes(b []byte) (UUID, error) {
+	// Parsing a string is actually faster than parsing a byte slice as it
+	// is cheaper to slice a string.  Further, it is not safe to convert
+	// a string into a byte slice but the opposite direction is.  These
+	// stem from the fact that a byte slice is 3 words while a string
+	// is only 2 words.
+	return Parse(*(*string)(unsafe.Pointer(&b)))
 }
 
-// Array returns an array representation of uuid that can be used as a map key.
-// Array panics if uuid is not valid.
-func (uuid UUID) Array() Array {
-	if len(uuid) != 16 {
-		panic("invalid uuid")
+func MustParse(s string) UUID {
+	u, err := Parse(s)
+	if err != nil {
+		panic(err)
 	}
-	var a Array
-	copy(a[:], uuid)
-	return a
+	return u
 }
 
 // String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 // , or "" if uuid is invalid.
 func (uuid UUID) String() string {
-	if len(uuid) != 16 {
-		return ""
-	}
 	var buf [36]byte
 	encodeHex(buf[:], uuid)
 	return string(buf[:])
@@ -115,9 +96,6 @@ func (uuid UUID) String() string {
 // URN returns the RFC 2141 URN form of uuid,
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,  or "" if uuid is invalid.
 func (uuid UUID) URN() string {
-	if len(uuid) != 16 {
-		return ""
-	}
 	var buf [36 + 9]byte
 	copy(buf[:], "urn:uuid:")
 	encodeHex(buf[9:], uuid)
@@ -136,12 +114,8 @@ func encodeHex(dst []byte, uuid UUID) {
 	hex.Encode(dst[24:], uuid[10:])
 }
 
-// Variant returns the variant encoded in uuid.  It returns Invalid if
-// uuid is invalid.
+// Variant returns the variant encoded in uuid.
 func (uuid UUID) Variant() Variant {
-	if len(uuid) != 16 {
-		return Invalid
-	}
 	switch {
 	case (uuid[8] & 0xc0) == 0x80:
 		return RFC4122
@@ -154,13 +128,10 @@ func (uuid UUID) Variant() Variant {
 	}
 }
 
-// Version returns the version of uuid.  It returns false if uuid is not
+// Version returns the version of uuid.
 // valid.
-func (uuid UUID) Version() (Version, bool) {
-	if len(uuid) != 16 {
-		return 0, false
-	}
-	return Version(uuid[6] >> 4), true
+func (uuid UUID) Version() Version {
+	return Version(uuid[6] >> 4)
 }
 
 func (v Version) String() string {

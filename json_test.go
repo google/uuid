@@ -1,4 +1,4 @@
-// Copyright 2014 Google Inc.  All rights reserved.
+// Copyright 2016 Google Inc.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var testUUID = Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+var testUUID = MustParse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 
 func TestJSON(t *testing.T) {
 	type S struct {
@@ -35,9 +35,10 @@ func BenchmarkUUID_MarshalJSON(b *testing.B) {
 	x := &struct {
 		UUID UUID `json:"uuid"`
 	}{}
-	x.UUID = Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
-	if x.UUID == nil {
-		b.Fatal("invalid uuid")
+	var err error
+	x.UUID, err = Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if err != nil {
+		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
 		js, err := json.Marshal(x)
