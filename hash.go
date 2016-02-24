@@ -12,10 +12,10 @@ import (
 
 // Well known namespace IDs and UUIDs
 var (
-	NameSpace_DNS  = MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-	NameSpace_URL  = MustParse("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
-	NameSpace_OID  = MustParse("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
-	NameSpace_X500 = MustParse("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
+	NameSpace_DNS  = Must(Parse("6ba7b810-9dad-11d1-80b4-00c04fd430c8"))
+	NameSpace_URL  = Must(Parse("6ba7b811-9dad-11d1-80b4-00c04fd430c8"))
+	NameSpace_OID  = Must(Parse("6ba7b812-9dad-11d1-80b4-00c04fd430c8"))
+	NameSpace_X500 = Must(Parse("6ba7b814-9dad-11d1-80b4-00c04fd430c8"))
 	NIL            UUID // empty UUID, all zeros
 )
 
