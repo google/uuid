@@ -6,12 +6,12 @@ package uuid
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 type test struct {
@@ -466,58 +466,23 @@ func BenchmarkParseBytes(b *testing.B) {
 	}
 }
 
-// parseBytesCopy is to benchmark not using unsafe.
-func parseBytesCopy(b []byte) (UUID, error) {
-	return Parse(string(b))
+// parseBytesUnsafe is to benchmark using unsafe.
+func parseBytesUnsafe(b []byte) (UUID, error) {
+	return Parse(*(*string)(unsafe.Pointer(&b)))
 }
 
-
-// xtobb converts the the first two hex bytes of x into a byte.
-func xtobb(x []byte) (byte, bool) {
-        b1 := xvalues[x[0]]
-        b2 := xvalues[x[1]]
-        return (b1 << 4) | b2, b1 != 255 && b2 != 255
-}
-
-// parseBytes is the same as Parse, but with byte slices.  It demonstrates
-// that it is faster to convert the byte slice into a string and then parse
-// than to parse the byte slice directly.
-func parseBytes(s []byte) (UUID, error) {
-	var uuid UUID
-	if len(s) != 36 {
-		if len(s) != 36+9 {
-			return uuid, fmt.Errorf("invalid UUID length: %d", len(s))
-		}
-		if !bytes.Equal(bytes.ToLower(s[:9]), []byte("urn:uuid:")) {
-			return uuid, fmt.Errorf("invalid urn prefix: %q", s[:9])
-		}
-		s = s[9:]
-	}
-	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-		return uuid, errors.New("invalid UUID format")
-	}
-	for i, x := range [16]int{
-		0, 2, 4, 6,
-		9, 11,
-		14, 16,
-		19, 21,
-		24, 26, 28, 30, 32, 34} {
-		if v, ok := xtobb(s[x:]); !ok {
-			return uuid, errors.New("invalid UUID format")
-		} else {
-			uuid[i] = v
-		}
-	}
-	return uuid, nil
-}
-
-func BenchmarkParseBytesNative(b *testing.B) {
+func BenchmarkParseBytesUnsafe(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := parseBytes(asBytes)
+		_, err := parseBytesUnsafe(asBytes)
 		if err != nil {
 			b.Fatal(err)
 		}
 	}
+}
+
+// parseBytesCopy is to benchmark not using unsafe.
+func parseBytesCopy(b []byte) (UUID, error) {
+	return Parse(string(b))
 }
 
 func BenchmarkParseBytesCopy(b *testing.B) {
