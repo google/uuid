@@ -42,13 +42,3 @@ func NewUUID() (UUID, error) {
 
 	return uuid, nil
 }
-
-// MustNewUUID returns the Verison 1 UUID from calling NewUUID, or panics
-// if NewUUID fails.
-func MustNewUUID() UUID {
-	uuid, err := NewUUID()
-	if err != nil {
-		panic(err)
-	}
-	return uuid
-}

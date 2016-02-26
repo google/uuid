@@ -77,12 +77,12 @@ func ParseBytes(b []byte) (UUID, error) {
 	return Parse(*(*string)(unsafe.Pointer(&b)))
 }
 
-func MustParse(s string) UUID {
-	u, err := Parse(s)
+// Must returns uuid if err is nil and panics otherwise.
+func Must(uuid UUID, err error) UUID {
 	if err != nil {
 		panic(err)
 	}
-	return u
+	return uuid
 }
 
 // String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
