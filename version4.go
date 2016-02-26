@@ -30,7 +30,7 @@ func NewRandom() (UUID, error) {
 	var uuid UUID
 	_, err := io.ReadFull(rander, uuid[:])
 	if err != nil {
-		return UUID{}, err
+		return NIL, err
 	}
 	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is 10
