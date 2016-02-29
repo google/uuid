@@ -20,7 +20,7 @@ func (u UUID) MarshalText() ([]byte, error) {
 func (u *UUID) UnmarshalText(data []byte) error {
 	// See comment in ParseBytes why we do this.
 	// id, err := ParseBytes(data)
-        id, err := Parse(*(*string)(unsafe.Pointer(&data)))
+	id, err := Parse(*(*string)(unsafe.Pointer(&data)))
 	if err == nil {
 		*u = id
 	}

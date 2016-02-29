@@ -353,7 +353,7 @@ func TestNodeAndTime(t *testing.T) {
 }
 
 func TestMD5(t *testing.T) {
-	uuid := NewMD5(NameSpace_DNS, []byte("python.org")).String()
+	uuid := NewMD5(NameSpaceDNS, []byte("python.org")).String()
 	want := "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 	if uuid != want {
 		t.Errorf("MD5: got %q expected %q", uuid, want)
@@ -361,7 +361,7 @@ func TestMD5(t *testing.T) {
 }
 
 func TestSHA1(t *testing.T) {
-	uuid := NewSHA1(NameSpace_DNS, []byte("python.org")).String()
+	uuid := NewSHA1(NameSpaceDNS, []byte("python.org")).String()
 	want := "886313e1-3b8a-5372-9b90-0c9aee199e5d"
 	if uuid != want {
 		t.Errorf("SHA1: got %q expected %q", uuid, want)
@@ -407,7 +407,7 @@ func testDCE(t *testing.T, name string, uuid UUID, err error, domain Domain, id 
 	if v := uuid.Domain(); v != domain {
 		t.Errorf("%s: %s: expected domain %d, got %d", name, uuid, domain, v)
 	}
-	if v := uuid.Id(); v != id {
+	if v := uuid.ID(); v != id {
 		t.Errorf("%s: %s: expected id %d, got %d", name, uuid, id, v)
 	}
 }
@@ -471,12 +471,11 @@ func parseBytesCopy(b []byte) (UUID, error) {
 	return Parse(string(b))
 }
 
-
 // xtobb converts the the first two hex bytes of x into a byte.
 func xtobb(x []byte) (byte, bool) {
-        b1 := xvalues[x[0]]
-        b2 := xvalues[x[1]]
-        return (b1 << 4) | b2, b1 != 255 && b2 != 255
+	b1 := xvalues[x[0]]
+	b2 := xvalues[x[1]]
+	return (b1 << 4) | b2, b1 != 255 && b2 != 255
 }
 
 // parseBytes is the same as Parse, but with byte slices.  It demonstrates
