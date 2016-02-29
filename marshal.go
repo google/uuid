@@ -10,33 +10,33 @@ import (
 )
 
 // MarshalText implements encoding.TextMarshaler.
-func (u UUID) MarshalText() ([]byte, error) {
+func (uuid UUID) MarshalText() ([]byte, error) {
 	var js [36]byte
-	encodeHex(js[:], u)
+	encodeHex(js[:], uuid)
 	return js[:], nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (u *UUID) UnmarshalText(data []byte) error {
+func (uuid *UUID) UnmarshalText(data []byte) error {
 	// See comment in ParseBytes why we do this.
 	// id, err := ParseBytes(data)
         id, err := Parse(*(*string)(unsafe.Pointer(&data)))
 	if err == nil {
-		*u = id
+		*uuid = id
 	}
 	return err
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (u UUID) MarshalBinary() ([]byte, error) {
-	return u[:], nil
+func (uuid UUID) MarshalBinary() ([]byte, error) {
+	return uuid[:], nil
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (u *UUID) UnmarshalBinary(data []byte) error {
+func (uuid *UUID) UnmarshalBinary(data []byte) error {
 	if len(data) != 16 {
 		return fmt.Errorf("invalid UUID (got %d bytes)", len(data))
 	}
-	copy(u[:], data)
+	copy(uuid[:], data)
 	return nil
 }

@@ -67,7 +67,7 @@ func Parse(s string) (UUID, error) {
 	return uuid, nil
 }
 
-// ParseBytes is like Parse, exect it parses a byte slice instead of a string.
+// ParseBytes is like Parse, except it parses a byte slice instead of a string.
 func ParseBytes(b []byte) (UUID, error) {
 	// Parsing a string is actually faster than parsing a byte slice as it
 	// is cheaper to slice a string.  Further, it is not safe to convert
@@ -129,7 +129,6 @@ func (uuid UUID) Variant() Variant {
 }
 
 // Version returns the version of uuid.
-// valid.
 func (uuid UUID) Version() Version {
 	return Version(uuid[6] >> 4)
 }
