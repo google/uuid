@@ -29,14 +29,14 @@ func NewUUID() (UUID, error) {
 		return uuid, err
 	}
 
-	time_low := uint32(now & 0xffffffff)
-	time_mid := uint16((now >> 32) & 0xffff)
-	time_hi := uint16((now >> 48) & 0x0fff)
-	time_hi |= 0x1000 // Version 1
+	timeLow := uint32(now & 0xffffffff)
+	timeMid := uint16((now >> 32) & 0xffff)
+	timeHi := uint16((now >> 48) & 0x0fff)
+	timeHi |= 0x1000 // Version 1
 
-	binary.BigEndian.PutUint32(uuid[0:], time_low)
-	binary.BigEndian.PutUint16(uuid[4:], time_mid)
-	binary.BigEndian.PutUint16(uuid[6:], time_hi)
+	binary.BigEndian.PutUint32(uuid[0:], timeLow)
+	binary.BigEndian.PutUint16(uuid[4:], timeMid)
+	binary.BigEndian.PutUint16(uuid[6:], timeHi)
 	binary.BigEndian.PutUint16(uuid[8:], seq)
 	copy(uuid[10:], nodeID[:])
 
