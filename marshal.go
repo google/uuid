@@ -4,10 +4,7 @@
 
 package uuid
 
-import (
-	"fmt"
-	"unsafe"
-)
+import "fmt"
 
 // MarshalText implements encoding.TextMarshaler.
 func (uuid UUID) MarshalText() ([]byte, error) {
@@ -20,7 +17,7 @@ func (uuid UUID) MarshalText() ([]byte, error) {
 func (uuid *UUID) UnmarshalText(data []byte) error {
 	// See comment in ParseBytes why we do this.
 	// id, err := ParseBytes(data)
-        id, err := Parse(*(*string)(unsafe.Pointer(&data)))
+	id, err := ParseBytes(data)
 	if err == nil {
 		*uuid = id
 	}
