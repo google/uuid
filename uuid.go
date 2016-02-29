@@ -5,13 +5,13 @@
 package uuid
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
-	"unsafe"
 )
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
@@ -58,7 +58,7 @@ func Parse(s string) (UUID, error) {
 		14, 16,
 		19, 21,
 		24, 26, 28, 30, 32, 34} {
-		if v, ok := xtob(s[x:]); !ok {
+		if v, ok := xtob(s[x], s[x+1]); !ok {
 			return uuid, errors.New("invalid UUID format")
 		} else {
 			uuid[i] = v
@@ -69,12 +69,32 @@ func Parse(s string) (UUID, error) {
 
 // ParseBytes is like Parse, except it parses a byte slice instead of a string.
 func ParseBytes(b []byte) (UUID, error) {
-	// Parsing a string is actually faster than parsing a byte slice as it
-	// is cheaper to slice a string.  Further, it is not safe to convert
-	// a string into a byte slice but the opposite direction is.  These
-	// stem from the fact that a byte slice is 3 words while a string
-	// is only 2 words.
-	return Parse(*(*string)(unsafe.Pointer(&b)))
+	var uuid UUID
+	if len(b) != 36 {
+		if len(b) != 36+9 {
+			return uuid, fmt.Errorf("invalid UUID length: %d", len(b))
+		}
+		if !bytes.Equal(bytes.ToLower(b[:9]), []byte("urn:uuid:")) {
+			return uuid, fmt.Errorf("invalid urn prefix: %q", b[:9])
+		}
+		b = b[9:]
+	}
+	if b[8] != '-' || b[13] != '-' || b[18] != '-' || b[23] != '-' {
+		return uuid, errors.New("invalid UUID format")
+	}
+	for i, x := range [16]int{
+		0, 2, 4, 6,
+		9, 11,
+		14, 16,
+		19, 21,
+		24, 26, 28, 30, 32, 34} {
+		if v, ok := xtob(b[x], b[x+1]); !ok {
+			return uuid, errors.New("invalid UUID format")
+		} else {
+			uuid[i] = v
+		}
+	}
+	return uuid, nil
 }
 
 // Must returns uuid if err is nil and panics otherwise.
