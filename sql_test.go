@@ -90,6 +90,17 @@ func TestScan(t *testing.T) {
 			t.Error("UUID was not nil after scanning empty byte slice")
 		}
 	}
+
+	uuid = UUID{}
+	err = (&uuid).Scan(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, v := range uuid {
+		if v != 0 {
+			t.Error("UUID was not nil after scanning nil")
+		}
+	}
 }
 
 func TestValue(t *testing.T) {

@@ -14,6 +14,9 @@ import (
 // consult database-specific driver documentation for matching types.
 func (uuid *UUID) Scan(src interface{}) error {
 	switch src := src.(type) {
+	case nil:
+		return nil
+
 	case string:
 		// if an empty UUID comes from a table, we return a null UUID
 		if src == "" {
