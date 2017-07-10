@@ -6,7 +6,7 @@ package uuid
 
 import "io"
 
-// New is creates a new random UUID or panics.  New is equivalent to
+// New creates a new random UUID or panics.  New is equivalent to
 // the expression
 //
 //    uuid.Must(uuid.NewRandom())
