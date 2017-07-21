@@ -7,6 +7,7 @@ package uuid
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -97,6 +98,16 @@ func ParseBytes(b []byte) (UUID, error) {
 	return uuid, nil
 }
 
+// ParseUint64 parse two uint64 to generate UUID
+// mostSigBits the most significant 64 bits of this UUID's 128 bit value.
+// leastSigBits the least significant 64 bits of this UUID's 128 bit value.
+func ParseUint64(mostSigBits, leastSigBits uint64) (UUID, error) {
+	var uuid UUID
+	binary.BigEndian.PutUint64(uuid[:8], mostSigBits)
+	binary.BigEndian.PutUint64(uuid[8:], leastSigBits)
+	return uuid, nil
+}
+
 // Must returns uuid if err is nil and panics otherwise.
 func Must(uuid UUID, err error) UUID {
 	if err != nil {
@@ -120,6 +131,16 @@ func (uuid UUID) URN() string {
 	copy(buf[:], "urn:uuid:")
 	encodeHex(buf[9:], uuid)
 	return string(buf[:])
+}
+
+// MostSignificantBits the most significant 64 bits of this UUID's 128 bit value.
+func (uuid UUID) MostSignificantBits() uint64 {
+	return binary.BigEndian.Uint64(uuid[:8])
+}
+
+// LeastSignificantBits the least significant 64 bits of this UUID's 128 bit value.
+func (uuid UUID) LeastSignificantBits() uint64 {
+	return binary.BigEndian.Uint64(uuid[8:])
 }
 
 func encodeHex(dst []byte, uuid UUID) {
