@@ -246,7 +246,7 @@ func TestCoding(t *testing.T) {
 	if err != nil {
 		t.Errorf("Parse returned unexpected error %v", err)
 	}
-	if data != data {
+	if data != uuid {
 		t.Errorf("%s: decoded to %s, expected %s", text, uuid, data)
 	}
 }
@@ -470,7 +470,6 @@ func BenchmarkParseBytes(b *testing.B) {
 func parseBytesUnsafe(b []byte) (UUID, error) {
 	return Parse(*(*string)(unsafe.Pointer(&b)))
 }
-
 
 func BenchmarkParseBytesUnsafe(b *testing.B) {
 	for i := 0; i < b.N; i++ {
