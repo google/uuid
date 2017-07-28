@@ -19,7 +19,7 @@ func New() UUID {
 // The strength of the UUIDs is based on the strength of the crypto/rand
 // package.
 //
-// A note about uniqueness derived from from the UUID Wikipedia entry:
+// A note about uniqueness derived from the UUID Wikipedia entry:
 //
 //  Randomly generated UUIDs have 122 random bits.  One's annual risk of being
 //  hit by a meteorite is estimated to be one chance in 17 billion, that
