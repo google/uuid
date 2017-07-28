@@ -523,3 +523,49 @@ func BenchmarkUUID_URN(b *testing.B) {
 		}
 	}
 }
+
+var dataMostAndLeastSignificantBits = []struct {
+	uuid                 string
+	MostSignificantBits  uint64
+	LeastSignificantBits uint64
+}{
+	{
+		uuid:                 "f47ac10b-58cc-0372-8567-0e02b2c3d479",
+		MostSignificantBits:  17616605146891682674,
+		LeastSignificantBits: 9612667334397514873,
+	},
+
+	{
+		uuid:                 "00000000-0000-0002-0000-000000000001",
+		MostSignificantBits:  2,
+		LeastSignificantBits: 1,
+	},
+}
+
+func TestMostAndLeastSignificantBits(t *testing.T) {
+	for i, d := range dataMostAndLeastSignificantBits {
+		uuid, err := Parse(d.uuid)
+		if err != nil {
+			t.Fatalf("%d Parser returned unexpected error %v", i, err)
+		}
+
+		if uuid.MostSignificantBits() != d.MostSignificantBits {
+			t.Error("actual", uuid.MostSignificantBits(), "expected", d.MostSignificantBits)
+		}
+
+		if uuid.LeastSignificantBits() != d.LeastSignificantBits {
+			t.Error("actual", uuid.LeastSignificantBits(), "expected", d.LeastSignificantBits)
+		}
+
+		uuidByUint64, errUint64 := ParseUint64(uuid.MostSignificantBits(), uuid.LeastSignificantBits())
+		if errUint64 != nil {
+			t.Fatalf("%d Parser returned unexpected error %v", i, errUint64)
+		}
+
+		if uuidByUint64 != uuid {
+			t.Error("actual", uuidByUint64, "expected", uuid)
+		}
+
+	}
+
+}
