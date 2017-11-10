@@ -121,6 +121,25 @@ func TestUUID(t *testing.T) {
 	}
 }
 
+func TestFromBytes(t *testing.T) {
+	b := []byte{
+		0x7d, 0x44, 0x48, 0x40,
+		0x9d, 0xc0,
+		0x11, 0xd1,
+		0xb2, 0x45,
+		0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2,
+	}
+	uuid, err := FromBytes(b)
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	for i := 0; i < len(uuid); i++ {
+		if b[i] != uuid[i] {
+			t.Fatalf("FromBytes() got %v expected %v\b", uuid[:], b)
+		}
+	}
+}
+
 func TestConstants(t *testing.T) {
 	for x, tt := range constants {
 		v, ok := tt.c.(fmt.Stringer)
