@@ -305,7 +305,7 @@ func TestVersion1(t *testing.T) {
 	case t1 > t2 && q1 == q2:
 		t.Error("time reversed")
 	case t1 < t2 && q1 != q2:
-		t.Error("clock sequence chaned unexpectedly")
+		t.Error("clock sequence changed unexpectedly")
 	}
 }
 
@@ -347,7 +347,7 @@ func TestNode(t *testing.T) {
 	}
 
 	if ni := NodeInterface(); ni != "user" {
-		t.Errorf("got inteface %q, want %q", ni, "user")
+		t.Errorf("got interface %q, want %q", ni, "user")
 	}
 }
 
@@ -392,7 +392,7 @@ func TestNodeID(t *testing.T) {
 	SetNodeInterface("")
 	s := NodeInterface()
 	if s == "" || s == "user" {
-		t.Errorf("NodeInterface %q after SetInteface", s)
+		t.Errorf("NodeInterface %q after SetInterface", s)
 	}
 	node1 := NodeID()
 	if node1 == nil {
@@ -443,7 +443,7 @@ func TestDCE(t *testing.T) {
 type badRand struct{}
 
 func (r badRand) Read(buf []byte) (int, error) {
-	for i, _ := range buf {
+	for i := range buf {
 		buf[i] = byte(i)
 	}
 	return len(buf), nil
@@ -454,13 +454,13 @@ func TestBadRand(t *testing.T) {
 	uuid1 := New()
 	uuid2 := New()
 	if uuid1 != uuid2 {
-		t.Errorf("execpted duplicates, got %q and %q", uuid1, uuid2)
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid2)
 	}
 	SetRand(nil)
 	uuid1 = New()
 	uuid2 = New()
 	if uuid1 == uuid2 {
-		t.Errorf("unexecpted duplicates, got %q", uuid1)
+		t.Errorf("unexpected duplicates, got %q", uuid1)
 	}
 }
 
