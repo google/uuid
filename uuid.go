@@ -140,7 +140,7 @@ func (uuid UUID) URN() string {
 }
 
 func encodeHex(dst []byte, uuid UUID) {
-	hex.Encode(dst[:], uuid[:4])
+	hex.Encode(dst, uuid[:4])
 	dst[8] = '-'
 	hex.Encode(dst[9:13], uuid[4:6])
 	dst[13] = '-'
