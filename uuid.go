@@ -139,7 +139,7 @@ func ParseBytes(b []byte) (UUID, error) {
 func MustParse(s string) UUID {
 	uuid, err := Parse(s)
 	if err != nil {
-		panic(`uuid: Parse(` + s + `): ` + err.Error())
+		panic(errors.New(`uuid: Parse(` + s + `): ` + err.Error()))
 	}
 	return uuid
 }
