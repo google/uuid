@@ -1,55 +1,30 @@
 package uuid
 
 import (
-	"testing"
-	"fmt"
-	"strings"
 	"math/rand"
-
+	"testing"
+	"time"
 )
 
 func TestUuidSources(t *testing.T) {
-
-	uuidSourceA := NewSource(rand.New(rand.NewSource(34576)))
-	uuidSourceB := NewSource(rand.New(rand.NewSource(34576)))
+	currentTime := time.Now().UnixNano()
+	uuidSourceA := NewSource(rand.New(rand.NewSource(currentTime)))
+	uuidSourceB := NewSource(rand.New(rand.NewSource(currentTime)))
 	
-	var uuidStrA, uuidStrB string
-	fmt.Printf("Random values: ")
 	for i := 0; i < 10; i++ {
-		uuidStrA += uuidSourceA.New().String() + "."
-	}
-	fmt.Printf("%v\n", uuidStrA)
-	
-	fmt.Printf("Random values: ")
-	for i := 0; i < 10; i++ {
-		uuidStrB += uuidSourceB.New().String() + "."
-	}
-	fmt.Printf("%v\n", uuidStrB)
-	
-	if !strings.EqualFold(uuidStrA, uuidStrB) {
-		t.Error("Uuid values are not reproducaible!")
+		if uuidSourceA.New().String() != uuidSourceB.New().String() {
+			t.Error("Uuid values are not reproducaible!")
+		}
 	}
 	
-	uuidSourceA = NewSource(rand.New(rand.NewSource(66)))
-	uuidSourceB = NewSource(rand.New(rand.NewSource(77)))
+	uuidSourceA = NewSource(rand.New(rand.NewSource(123)))
+	uuidSourceB = NewSource(rand.New(rand.NewSource(456)))
 	
 
-	uuidStrA = ""
-	uuidStrB = ""
-	fmt.Printf("Random values: ")
 	for i := 0; i < 10; i++ {
-		uuidStrA += uuidSourceA.New().String() + "."
+		if uuidSourceA.New().String() == uuidSourceB.New().String() {
+			t.Error("Uuid values should not match!")
+		}
 	}
-	fmt.Printf("%v\n", uuidStrA)
-	
-	fmt.Printf("Random values: ")
-	for i := 0; i < 10; i++ {
-		uuidStrB += uuidSourceB.New().String() + "."
-	}
-	fmt.Printf("%v\n", uuidStrB)
-	
-	if strings.EqualFold(uuidStrA, uuidStrB) {
-		t.Error("Uuid values should not be reproducaible!")
-	}
-	
+
 }
