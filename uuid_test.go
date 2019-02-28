@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 	"unsafe"
+	
+	"math/rand"
 )
 
 type test struct {
@@ -477,6 +479,25 @@ func TestBadRand(t *testing.T) {
 	if uuid1 == uuid2 {
 		t.Errorf("unexpected duplicates, got %q", uuid1)
 	}
+}
+
+func TestSetRand(t *testing.T) {
+	SetRand(rand.New(rand.NewSource(456)))
+	uuid1 := New()
+	uuid2 := New()
+
+	SetRand(rand.New(rand.NewSource(456)))
+	uuid3 := New()
+	uuid4 := New()
+
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+	if uuid2 != uuid4 {
+		t.Errorf("expected duplicates, got %q and %q", uuid2, uuid4)
+	}
+	
+	
 }
 
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
