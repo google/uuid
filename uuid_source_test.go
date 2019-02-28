@@ -1,17 +1,19 @@
 package uuid
 
 import (
-	"math/rand"
 	"testing"
-	"time"
+	"strings"
+	
+	regen "github.com/zach-klippenstein/goregen"
 )
 
 func TestUuidSources(t *testing.T) {
 	
+	myString, _ := regen.Generate("[a-zA-Z]{1000}")
+
 	// Two identical sources, should give same sequence
-	currentTime := time.Now().UnixNano()
-	uuidSourceA := NewSource(rand.New(rand.NewSource(currentTime)))
-	uuidSourceB := NewSource(rand.New(rand.NewSource(currentTime)))
+	uuidSourceA := NewSource(strings.NewReader(myString))
+	uuidSourceB := NewSource(strings.NewReader(myString))
 	
 	for i := 0; i < 10; i++ {
 		uuid1 := uuidSourceA.New()
@@ -34,8 +36,8 @@ func TestUuidSources(t *testing.T) {
 	}
 	
 	// Set rander to rand source with same seed, should give same sequence
-	uuidSourceA.SetRand(rand.New(rand.NewSource(123)))
-	uuidSourceB.SetRand(rand.New(rand.NewSource(123)))
+	uuidSourceA.SetRand(strings.NewReader(myString))
+	uuidSourceB.SetRand(strings.NewReader(myString))
 
 	for i := 0; i < 10; i++ {
 		uuid1 := uuidSourceA.New()
@@ -46,8 +48,8 @@ func TestUuidSources(t *testing.T) {
 	}
 
 	// Set rander to rand source with different seeds, should not give same sequence
-	uuidSourceA.SetRand(rand.New(rand.NewSource(456)))
-	uuidSourceB.SetRand(rand.New(rand.NewSource(789)))
+	uuidSourceA.SetRand(strings.NewReader("456" + myString))
+	uuidSourceB.SetRand(strings.NewReader("myString" + myString))
 
 	for i := 0; i < 10; i++ {
 		uuid1 := uuidSourceA.New()
