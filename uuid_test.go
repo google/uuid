@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 	"unsafe"
-	
-	"math/rand"
 )
 
 type test struct {
@@ -482,11 +480,13 @@ func TestBadRand(t *testing.T) {
 }
 
 func TestSetRand(t *testing.T) {
-	SetRand(rand.New(rand.NewSource(456)))
+	myString := "805-9dd6-1a877cb526c678e71d38-7122-44c0-9b7c-04e7001cc78783ac3e82-47a3-4cc3-9951-13f3339d88088f5d685a-11f7-4078-ada9-de44ad2daeb7"
+	
+	SetRand(strings.NewReader(myString))
 	uuid1 := New()
 	uuid2 := New()
 
-	SetRand(rand.New(rand.NewSource(456)))
+	SetRand(strings.NewReader(myString))
 	uuid3 := New()
 	uuid4 := New()
 
