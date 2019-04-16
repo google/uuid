@@ -479,6 +479,46 @@ func TestBadRand(t *testing.T) {
 	}
 }
 
+func TestSetRand(t *testing.T) {
+	myString := "805-9dd6-1a877cb526c678e71d38-7122-44c0-9b7c-04e7001cc78783ac3e82-47a3-4cc3-9951-13f3339d88088f5d685a-11f7-4078-ada9-de44ad2daeb7"
+	
+	SetRand(strings.NewReader(myString))
+	uuid1 := New()
+	uuid2 := New()
+
+	SetRand(strings.NewReader(myString))
+	uuid3 := New()
+	uuid4 := New()
+
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+	if uuid2 != uuid4 {
+		t.Errorf("expected duplicates, got %q and %q", uuid2, uuid4)
+	}
+}
+
+func TestRandomFromReader(t *testing.T) {
+	myString := "8059ddhdle77cb52"
+	r := bytes.NewReader([]byte(myString))
+	r2 := bytes.NewReader([]byte(myString))
+	uuid1, err := NewRandomFromReader(r)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	_, err = NewRandomFromReader(r)
+	if err == nil {
+		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewRandomFromReader may not be using the provided reader")
+	}
+	uuid3, err := NewRandomFromReader(r2)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+}
+
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
