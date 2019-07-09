@@ -9,4 +9,19 @@
 //
 // A UUID is a 16 byte (128 bit) array.  UUIDs may be used as keys to
 // maps or compared directly.
+// 
+// Sample usage:
+// 
+//       package main
+//
+//       import (
+//         "fmt"
+//
+//         "github.com/google/uuid"
+//       )
+//
+//       func main() {
+//         id := uuid.New()
+//         fmt.Println("id:", id.String())
+//       }
 package uuid
