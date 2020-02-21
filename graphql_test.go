@@ -32,11 +32,9 @@ func TestUnmarshalGQL(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.uuid.UnmarshalGQL(tt.args); (err != nil) != tt.wantErr {
-				t.Errorf("UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+		if err := tt.uuid.UnmarshalGQL(tt.args); (err != nil) != tt.wantErr {
+			t.Errorf("UnmarshalGQL() error = %v, wantErr %v", err, tt.wantErr)
+		}
 	}
 }
 
