@@ -4,7 +4,10 @@
 
 package uuid
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // MarshalText implements encoding.TextMarshaler.
 func (uuid UUID) MarshalText() ([]byte, error) {
@@ -35,4 +38,26 @@ func (uuid *UUID) UnmarshalBinary(data []byte) error {
 	}
 	copy(uuid[:], data)
 	return nil
+}
+
+// UnmarshalGQL implements the graphql.Unmarshaler interface
+func (uuid *UUID) UnmarshalGQL(v interface{}) (err error) {
+	if s, ok := v.(string); ok {
+		id, err := Parse(s)
+		if err == nil {
+			*uuid = id
+		}
+		return err
+	}
+
+	return fmt.Errorf("invalid UUID type, value must string")
+}
+
+// MarshalGQL implements the graphql.Marshaler interface
+func (uuid UUID) MarshalGQL(w io.Writer) {
+	var gql [38]byte
+	gql[0] = '"'
+	encodeHex(gql[1:37], uuid)
+	gql[37] = '"'
+	w.Write(gql[:])
 }
