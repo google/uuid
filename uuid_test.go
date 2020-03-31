@@ -59,14 +59,12 @@ var tests = []test{
 	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true},
 	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true},
 
-
 	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, Invalid, false},
 	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, Invalid, false},
-
 
 	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, RFC4122, true},
 	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, Invalid, false},
@@ -481,7 +479,7 @@ func TestBadRand(t *testing.T) {
 
 func TestSetRand(t *testing.T) {
 	myString := "805-9dd6-1a877cb526c678e71d38-7122-44c0-9b7c-04e7001cc78783ac3e82-47a3-4cc3-9951-13f3339d88088f5d685a-11f7-4078-ada9-de44ad2daeb7"
-	
+
 	SetRand(strings.NewReader(myString))
 	uuid1 := New()
 	uuid2 := New()
