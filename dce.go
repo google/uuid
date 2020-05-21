@@ -32,7 +32,7 @@ const (
 func NewDCESecurity(domain Domain, id uint32) (UUID, error) {
 	uuid, err := NewUUID()
 	if err == nil {
-		uuid[6] = (uuid[6] & 0x0f) | 0x20 // Version 2
+		uuid[6] = (uuid[6] & 0x0f) | 0x02 // Version 2
 		uuid[9] = byte(domain)
 		binary.BigEndian.PutUint32(uuid[0:], id)
 	}
