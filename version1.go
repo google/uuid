@@ -21,6 +21,8 @@ func NewUUID() (UUID, error) {
 	if nodeID == zeroID {
 		setNodeInterface("")
 	}
+	var nodeIDCopy [6]byte
+	copy(nodeIDCopy[:], nodeID[:])
 	nodeMu.Unlock()
 
 	var uuid UUID
@@ -38,7 +40,7 @@ func NewUUID() (UUID, error) {
 	binary.BigEndian.PutUint16(uuid[4:], timeMid)
 	binary.BigEndian.PutUint16(uuid[6:], timeHi)
 	binary.BigEndian.PutUint16(uuid[8:], seq)
-	copy(uuid[10:], nodeID[:])
+	copy(uuid[10:], nodeIDCopy[:])
 
 	return uuid, nil
 }
