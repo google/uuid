@@ -55,5 +55,5 @@ func (uuid *UUID) Scan(src interface{}) error {
 // transparently. Currently, UUIDs map to strings. Please consult
 // database-specific driver documentation for matching types.
 func (uuid UUID) Value() (driver.Value, error) {
-	return uuid.String(), nil
+	return uuid.MarshalBinary()
 }

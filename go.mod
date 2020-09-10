@@ -1,1 +1,3 @@
-module github.com/google/uuid
+module github.com/aohorodnyk/uuid
+
+go 1.14
