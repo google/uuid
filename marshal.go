@@ -36,3 +36,30 @@ func (uuid *UUID) UnmarshalBinary(data []byte) error {
 	copy(uuid[:], data)
 	return nil
 }
+
+// MarshalBinaryLittleEndian implements encoding.BinaryMarshaler.
+func (uuid UUID) MarshalBinaryLittleEndian() ([]byte, error) {
+	var uuidLittleEndian UUID = UUID {
+		// convert first 3 fields from big-endian to little-endian
+		uuid[3], uuid[2], uuid[1], uuid[0],
+		uuid[5], uuid[4],
+		uuid[7], uuid[6],
+	}
+	// all the rest fields keep byte order
+	copy(uuidLittleEndian[8:], uuid[8:])
+	return uuidLittleEndian[:], nil
+}
+
+// UnmarshalBinaryLittleEndian implements encoding.BinaryUnmarshaler.
+func (uuid *UUID) UnmarshalBinaryLittleEndian(data []byte) error {
+	if len(data) != 16 {
+		return fmt.Errorf("invalid UUID (got %d bytes)", len(data))
+	}
+	// convert first 3 fields from little-endian to big-endian
+	uuid[0] = data[3]; uuid[1] = data[2]; uuid[2] = data[1]; uuid[3] = data[0]
+	uuid[4] = data[5]; uuid[5] = data[4]
+	uuid[6] = data[7]; uuid[7] = data[6]
+	// all the rest fields keep byte order
+	copy(uuid[8:], data[8:])
+	return nil
+}

@@ -157,6 +157,14 @@ func FromBytes(b []byte) (uuid UUID, err error) {
 	return uuid, err
 }
 
+// FromBytesLittleEndian creates a new UUID from a byte slice with little-endian
+// byte encoding for the first three fields. Returns an error if the slice
+// does not have a length of 16. The bytes are copied from the slice.
+func FromBytesLittleEndian(b []byte) (uuid UUID, err error) {
+	err = uuid.UnmarshalBinaryLittleEndian(b)
+	return uuid, err
+}
+
 // Must returns uuid if err is nil and panics otherwise.
 func Must(uuid UUID, err error) UUID {
 	if err != nil {
