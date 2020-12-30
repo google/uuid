@@ -517,6 +517,15 @@ func TestRandomFromReader(t *testing.T) {
 	}
 }
 
+func TestWrongLength(t *testing.T) {
+	_, err := Parse("12345")
+	if err == nil {
+		t.Errorf("expected ‘12345’ was invalid")
+	} else if err.Error() != "invalid UUID length: 5" {
+		t.Errorf("expected a different error message for an invalid length")
+	}
+}
+
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
@@ -592,6 +601,36 @@ func BenchmarkUUID_URN(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		if uuid.URN() == "" {
 			b.Fatal("invalid uuid")
+		}
+	}
+}
+
+func BenchmarkParseBadLength(b *testing.B) {
+	short := asString[:10]
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(short)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", short)
+		}
+	}
+}
+
+func BenchmarkParseLen32Truncated(b *testing.B) {
+	partial := asString[:len(asString)-4]
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(partial)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", partial)
+		}
+	}
+}
+
+func BenchmarkParseLen36Corrupted(b *testing.B) {
+	wrong := asString[:len(asString)-1] + "x"
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(wrong)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", wrong)
 		}
 	}
 }
