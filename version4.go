@@ -17,9 +17,9 @@ func New() UUID {
 // NewString creates a new random UUID and returns it as a string or panics.
 // NewString is equivalent to the expression
 //
-//    uuid.Must(uuid.NewRandom()).String()
+//    uuid.New().String()
 func NewString() string {
-	return New().String()
+	return Must(NewRandom()).String()
 }
 
 // NewRandom returns a Random (Version 4) UUID.
