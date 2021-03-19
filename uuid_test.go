@@ -526,6 +526,13 @@ func TestWrongLength(t *testing.T) {
 	}
 }
 
+func TestIsWrongLength(t *testing.T) {
+	_, err := Parse("12345")
+	if !IsInvalidLengthError(err) {
+		t.Errorf("expected error type is invalidLengthError")
+	}
+}
+
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
