@@ -272,12 +272,20 @@ func SetRand(r io.Reader) {
 //
 // Since the pool is stored on the Go heap, this feature may be a bad fit
 // for security sensitive applications.
+//
+// Both EnableRandPool and DisableRandPool are not thread-safe and should
+// only be called when there is no possibility that New or any other
+// UUID Version 4 generation function will be called concurrently.
 func EnableRandPool() {
 	poolEnabled = true
 }
 
 // DisableRandPool disables the randomness pool if it was previously
 // enabled with EnableRandPool.
+//
+// Both EnableRandPool and DisableRandPool are not thread-safe and should
+// only be called when there is no possibility that New or any other
+// UUID Version 4 generation function will be called concurrently.
 func DisableRandPool() {
 	poolEnabled = false
 	defer poolMu.Unlock()
