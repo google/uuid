@@ -21,11 +21,11 @@ func main() {
 	flag.Parse()
 	var lreader io.Reader
 
-	if *parse == "" {
-		u := uuid.New()
+	if *parse == "" && *random == false {
+		u, _ := uuid.NewUUID()
 		fmt.Printf("%s", u)
 	} else if *parse == "" && *random == true {
-		u, _ := uuid.NewRandom()
+		u := uuid.New()
 		fmt.Printf("%s", u)
 	} else if *parse != "" {
 		if *parse == "-" {
@@ -44,6 +44,6 @@ func main() {
 		t := id.Time()
 		sec, nsec := t.UnixTime()
 		timeStamp := time.Unix(sec, nsec)
-		fmt.Printf("time : %v \n", timeStamp.Format("2006-01-02 Mon 15:04:05.000Z -0700"))
+		fmt.Printf("date : %v \n", timeStamp.Format("2006-01-02 Mon 15:04:05.000Z -0700"))
 	}
 }
