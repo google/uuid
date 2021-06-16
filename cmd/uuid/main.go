@@ -14,7 +14,6 @@ import (
 
 var (
 	parse  = flag.String("d", "", "Parse given UUID.")
-	person = flag.Bool("p", false, "Generate DCE Person UUID.")
 	random = flag.Bool("r", false, "Generate Random UUID.")
 )
 
@@ -22,11 +21,8 @@ func main() {
 	flag.Parse()
 	var lreader io.Reader
 
-	if *parse == "" && *person == false {
+	if *parse == "" {
 		u := uuid.New()
-		fmt.Printf("%s", u)
-	} else if *parse == "" && *person == true {
-		u, _ := uuid.NewDCEPerson()
 		fmt.Printf("%s", u)
 	} else if *parse == "" && *random == true {
 		u, _ := uuid.NewRandom()
