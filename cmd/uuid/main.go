@@ -4,22 +4,22 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 	"time"
-        "io"
-        "os"
-        "strings"
 
 	"github.com/google/uuid"
 )
 
 var (
-	parse = flag.String("d", "", "Parse given UUID.")
+	parse  = flag.String("d", "", "Parse given UUID.")
 	person = flag.Bool("p", false, "Generate DCE Person UUID.")
 	random = flag.Bool("r", false, "Generate Random UUID.")
 )
 
 func main() {
-   flag.Parse()
+	flag.Parse()
 	var lreader io.Reader
 
 	if *parse == "" && *person == false {
@@ -38,7 +38,7 @@ func main() {
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(lreader)
-		s := buf.String() 
+		s := buf.String()
 
 		uuid, _ := uuid.Parse(s)
 		fmt.Printf("Successfully parsed UID : %s\n", uuid)
