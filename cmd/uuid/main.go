@@ -23,10 +23,10 @@ func main() {
 
 	if *parse == "" && *random == false {
 		u, _ := uuid.NewUUID()
-		fmt.Printf("%s", u)
+		fmt.Printf("%s\n", u)
 	} else if *parse == "" && *random == true {
 		u := uuid.New()
-		fmt.Printf("%s", u)
+		fmt.Printf("%s\n", u)
 	} else if *parse != "" {
 		if *parse == "-" {
 			lreader = os.Stdin
