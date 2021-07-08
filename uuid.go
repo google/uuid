@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
@@ -33,7 +34,15 @@ const (
 	Future                    // Reserved for future definition.
 )
 
-var rander = rand.Reader // random function
+const randPoolSize = 16 * 16
+
+var (
+	rander      = rand.Reader // random function
+	poolEnabled = false
+	poolMu      sync.Mutex
+	poolPos     = randPoolSize     // protected with poolMu
+	pool        [randPoolSize]byte // protected with poolMu
+)
 
 type invalidLengthError struct{ len int }
 
@@ -254,4 +263,32 @@ func SetRand(r io.Reader) {
 		return
 	}
 	rander = r
+}
+
+// EnableRandPool enables internal randomness pool used for Random
+// (Version 4) UUID generation. The pool contains random bytes read from
+// the random number generator on demand in batches. Enabling the pool
+// may improve the UUID generation throughput significantly.
+//
+// Since the pool is stored on the Go heap, this feature may be a bad fit
+// for security sensitive applications.
+//
+// Both EnableRandPool and DisableRandPool are not thread-safe and should
+// only be called when there is no possibility that New or any other
+// UUID Version 4 generation function will be called concurrently.
+func EnableRandPool() {
+	poolEnabled = true
+}
+
+// DisableRandPool disables the randomness pool if it was previously
+// enabled with EnableRandPool.
+//
+// Both EnableRandPool and DisableRandPool are not thread-safe and should
+// only be called when there is no possibility that New or any other
+// UUID Version 4 generation function will be called concurrently.
+func DisableRandPool() {
+	poolEnabled = false
+	defer poolMu.Unlock()
+	poolMu.Lock()
+	poolPos = randPoolSize
 }
