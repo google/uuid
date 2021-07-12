@@ -7,7 +7,6 @@ package uuid
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"testing"
 )
 
@@ -212,27 +211,4 @@ func TestNullUUIDUnmarshalJSON(t *testing.T) {
 	if err != nil || !nu.Valid {
 		t.Errorf("expected nil when unmarshaling null, got %s", err)
 	}
-}
-
-func TestConformance(t *testing.T) {
-	input := []byte(`"12345678-abcd-1234-abcd-0123456789ab"`)
-	var n NullUUID
-	var u UUID
-
-	err := json.Unmarshal(input, &n)
-	fmt.Printf("Unmarshal NullUUID: %+v %v\n", n, err)
-	err = json.Unmarshal(input, &u)
-	fmt.Printf("Unmarshal UUID: %+v %v\n", u, err)
-
-	n = NullUUID{}
-	data, err := json.Marshal(&n)
-	fmt.Printf("Marshal Empty NullUUID %s %v\n", data, err)
-
-	n.Valid = true
-	n.UUID = u
-	data, err = json.Marshal(&n)
-	fmt.Printf("Marshal Filled NullUUID %s %v\n", data, err)
-
-	data, err = json.Marshal(&u)
-	fmt.Printf("Marshal UUID: %s %v\n", data, err)
 }
