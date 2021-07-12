@@ -11,8 +11,10 @@ import (
 	"fmt"
 )
 
+var jsonNull = []byte("null")
+
 // NullUUID represents a UUID that may be null.
-// NullUUID implements the Scanner interface so
+// NullUUID implements the SQL driver.Scanner interface so
 // it can be used as a scan destination:
 //
 //  var u uuid.NullUUID
@@ -29,7 +31,7 @@ type NullUUID struct {
 	Valid bool // Valid is true if UUID is not NULL
 }
 
-// Scan implements the Scanner interface.
+// Scan implements the SQL driver.Scanner interface.
 func (nu *NullUUID) Scan(value interface{}) error {
 	if value == nil {
 		nu.UUID, nu.Valid = Nil, false
@@ -80,7 +82,7 @@ func (nu NullUUID) MarshalText() ([]byte, error) {
 		return nu.UUID.MarshalText()
 	}
 
-	return []byte{110, 117, 108, 108}, nil
+	return jsonNull, nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
@@ -101,20 +103,16 @@ func (nu NullUUID) MarshalJSON() ([]byte, error) {
 		return json.Marshal(nu.UUID)
 	}
 
-	return json.Marshal(nil)
+	return jsonNull, nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (nu *NullUUID) UnmarshalJSON(data []byte) error {
-	null := []byte{110, 117, 108, 108}
-	if bytes.Equal(data, null) {
+	if bytes.Equal(data, jsonNull) {
+		*nu = NullUUID{}
 		return nil // valid null UUID
 	}
-
-	var u UUID
-	// tossing as we know u is valid
-	_ = json.Unmarshal(data, &u)
-	nu.Valid = true
-	nu.UUID = u
-	return nil
+	err := json.Unmarshal(data, &nu.UUID)
+	nu.Valid = err == nil
+	return err
 }
