@@ -255,3 +255,16 @@ func SetRand(r io.Reader) {
 	}
 	rander = r
 }
+
+// EnableRandPool is no longer supported and is now a no-op.
+// Clients should stop calling this function.
+// Instead, use a Version4 with a bufio.Reader or similar as the Rand.
+//
+// Deprecated: This could not be used safely in general, and is now a no-op.
+func EnableRandPool() { /* no-op */ }
+
+// DisableRandPool is no longer supported and is now a no-op.
+// Clients should stop calling this function.
+//
+// Deprecated: This could not be used safely in general, and is now a no-op.
+func DisableRandPool() { /* no-op */ }
