@@ -179,26 +179,6 @@ func TestRandomUUID(t *testing.T) {
 	}
 }
 
-func TestRandomUUID_Pooled(t *testing.T) {
-	defer DisableRandPool()
-	EnableRandPool()
-	m := make(map[string]bool)
-	for x := 1; x < 128; x++ {
-		uuid := New()
-		s := uuid.String()
-		if m[s] {
-			t.Errorf("NewRandom returned duplicated UUID %s", s)
-		}
-		m[s] = true
-		if v := uuid.Version(); v != 4 {
-			t.Errorf("Random UUID of version %s", v)
-		}
-		if uuid.Variant() != RFC4122 {
-			t.Errorf("Random UUID is variant %d", uuid.Variant())
-		}
-	}
-}
-
 func TestNew(t *testing.T) {
 	m := make(map[UUID]bool)
 	for x := 1; x < 32; x++ {
@@ -537,22 +517,6 @@ func TestRandomFromReader(t *testing.T) {
 	}
 }
 
-func TestRandPool(t *testing.T) {
-	myString := "8059ddhdle77cb52"
-	EnableRandPool()
-	SetRand(strings.NewReader(myString))
-	_, err := NewRandom()
-	if err == nil {
-		t.Errorf("expecting an error as reader has no more bytes")
-	}
-	DisableRandPool()
-	SetRand(strings.NewReader(myString))
-	_, err = NewRandom()
-	if err != nil {
-		t.Errorf("failed generating UUID from a reader")
-	}
-}
-
 func TestWrongLength(t *testing.T) {
 	_, err := Parse("12345")
 	if err == nil {
@@ -676,27 +640,4 @@ func BenchmarkParseLen36Corrupted(b *testing.B) {
 			b.Fatalf("expected ‘%s’ was invalid", wrong)
 		}
 	}
-}
-
-func BenchmarkUUID_New(b *testing.B) {
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_, err := NewRandom()
-			if err != nil {
-				b.Fatal(err)
-			}
-		}
-	})
-}
-
-func BenchmarkUUID_NewPooled(b *testing.B) {
-	EnableRandPool()
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_, err := NewRandom()
-			if err != nil {
-				b.Fatal(err)
-			}
-		}
-	})
 }
