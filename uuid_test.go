@@ -59,14 +59,12 @@ var tests = []test{
 	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true},
 	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true},
 
-
 	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, Invalid, false},
 	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, Invalid, false},
-
 
 	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, RFC4122, true},
 	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, Invalid, false},
@@ -166,6 +164,26 @@ func TestConstants(t *testing.T) {
 func TestRandomUUID(t *testing.T) {
 	m := make(map[string]bool)
 	for x := 1; x < 32; x++ {
+		uuid := New()
+		s := uuid.String()
+		if m[s] {
+			t.Errorf("NewRandom returned duplicated UUID %s", s)
+		}
+		m[s] = true
+		if v := uuid.Version(); v != 4 {
+			t.Errorf("Random UUID of version %s", v)
+		}
+		if uuid.Variant() != RFC4122 {
+			t.Errorf("Random UUID is variant %d", uuid.Variant())
+		}
+	}
+}
+
+func TestRandomUUID_Pooled(t *testing.T) {
+	defer DisableRandPool()
+	EnableRandPool()
+	m := make(map[string]bool)
+	for x := 1; x < 128; x++ {
 		uuid := New()
 		s := uuid.String()
 		if m[s] {
@@ -479,6 +497,78 @@ func TestBadRand(t *testing.T) {
 	}
 }
 
+func TestSetRand(t *testing.T) {
+	myString := "805-9dd6-1a877cb526c678e71d38-7122-44c0-9b7c-04e7001cc78783ac3e82-47a3-4cc3-9951-13f3339d88088f5d685a-11f7-4078-ada9-de44ad2daeb7"
+
+	SetRand(strings.NewReader(myString))
+	uuid1 := New()
+	uuid2 := New()
+
+	SetRand(strings.NewReader(myString))
+	uuid3 := New()
+	uuid4 := New()
+
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+	if uuid2 != uuid4 {
+		t.Errorf("expected duplicates, got %q and %q", uuid2, uuid4)
+	}
+}
+
+func TestRandomFromReader(t *testing.T) {
+	myString := "8059ddhdle77cb52"
+	r := bytes.NewReader([]byte(myString))
+	r2 := bytes.NewReader([]byte(myString))
+	uuid1, err := NewRandomFromReader(r)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	_, err = NewRandomFromReader(r)
+	if err == nil {
+		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewRandomFromReader may not be using the provided reader")
+	}
+	uuid3, err := NewRandomFromReader(r2)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+}
+
+func TestRandPool(t *testing.T) {
+	myString := "8059ddhdle77cb52"
+	EnableRandPool()
+	SetRand(strings.NewReader(myString))
+	_, err := NewRandom()
+	if err == nil {
+		t.Errorf("expecting an error as reader has no more bytes")
+	}
+	DisableRandPool()
+	SetRand(strings.NewReader(myString))
+	_, err = NewRandom()
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+}
+
+func TestWrongLength(t *testing.T) {
+	_, err := Parse("12345")
+	if err == nil {
+		t.Errorf("expected ‘12345’ was invalid")
+	} else if err.Error() != "invalid UUID length: 5" {
+		t.Errorf("expected a different error message for an invalid length")
+	}
+}
+
+func TestIsWrongLength(t *testing.T) {
+	_, err := Parse("12345")
+	if !IsInvalidLengthError(err) {
+		t.Errorf("expected error type is invalidLengthError")
+	}
+}
+
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
@@ -556,4 +646,57 @@ func BenchmarkUUID_URN(b *testing.B) {
 			b.Fatal("invalid uuid")
 		}
 	}
+}
+
+func BenchmarkParseBadLength(b *testing.B) {
+	short := asString[:10]
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(short)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", short)
+		}
+	}
+}
+
+func BenchmarkParseLen32Truncated(b *testing.B) {
+	partial := asString[:len(asString)-4]
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(partial)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", partial)
+		}
+	}
+}
+
+func BenchmarkParseLen36Corrupted(b *testing.B) {
+	wrong := asString[:len(asString)-1] + "x"
+	for i := 0; i < b.N; i++ {
+		_, err := Parse(wrong)
+		if err == nil {
+			b.Fatalf("expected ‘%s’ was invalid", wrong)
+		}
+	}
+}
+
+func BenchmarkUUID_New(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := NewRandom()
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUID_NewPooled(b *testing.B) {
+	EnableRandPool()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := NewRandom()
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }
