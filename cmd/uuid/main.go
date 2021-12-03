@@ -13,19 +13,15 @@ import (
 )
 
 var (
-	parse  = flag.String("d", "", "Parse given UUID.")
-	random = flag.Bool("r", false, "Generate Random UUID.")
+	parse  = flag.String("d", "", "Parse given UUID. ('-' for STDIN)")
 )
 
 func main() {
 	flag.Parse()
 	var lreader io.Reader
 
-	if *parse == "" && *random == false {
+	if *parse == "" {
 		u, _ := uuid.NewUUID()
-		fmt.Printf("%s\n", u)
-	} else if *parse == "" && *random == true {
-		u := uuid.New()
 		fmt.Printf("%s\n", u)
 	} else if *parse != "" {
 		if *parse == "-" {
