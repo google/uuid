@@ -205,10 +205,10 @@ func TestNullUUIDUnmarshalJSON(t *testing.T) {
 	var nu NullUUID
 	err := json.Unmarshal(jsonNull, &nu)
 	if err != nil || nu.Valid {
-		t.Errorf("expected nil when unmarshaling null, got %s", err)
+		t.Errorf("expected nil when unmarshalilng null, got %s", err)
 	}
 	err = json.Unmarshal(jsonUUID, &nu)
 	if err != nil || !nu.Valid {
-		t.Errorf("expected nil when unmarshaling null, got %s", err)
+		t.Errorf("expected nil when unmarshalling null, got %s", err)
 	}
 }
