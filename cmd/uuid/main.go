@@ -29,7 +29,7 @@ func main() {
 	} else if *parse != "" { // If a UUID is provided as input, parse and process it.
 		if *parse == "-" { // If input is "-", read from STDIN.
 			lreader = os.Stdin
-		} else if *parse != "-" { // Otherwise, read from the provided input string.
+		} else { // Otherwise, read from the provided input string.
 			lreader = strings.NewReader(*parse)
 		}
 
