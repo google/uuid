@@ -20,5 +20,5 @@ jobs:
         with:
           clean: false
       - run: |
-          apidiff -m -incompatible uuid.baseline . > diff.txt
+          apidiff -incompatible uuid.baseline . > diff.txt
           cat diff.txt && ! [ -s diff.txt ]
