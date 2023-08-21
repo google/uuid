@@ -73,7 +73,7 @@ func TestJSONUnmarshal(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var s S
 			if err := json.Unmarshal(tc.data, &s); err != tc.expectedError {
-				t.Errorf("unexpected error: got %#v, want %#v", err, tc.expectedError)
+				t.Errorf("unexpected error: got %v, want %v", err, tc.expectedError)
 			}
 			if !reflect.DeepEqual(s.ID1, tc.expectedResult) {
 				t.Errorf("got %#v, want %#v", s.ID1, tc.expectedResult)
