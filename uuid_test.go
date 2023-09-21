@@ -5,6 +5,7 @@
 package uuid
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -727,6 +728,19 @@ func BenchmarkUUID_NewPooled(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_, err := NewRandom()
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUID_BufioReadRandom(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		r := bufio.NewReaderSize(rander, randPoolSize)
+		var uuid UUID
+		for pb.Next() {
+			err := ReadRandom(r, &uuid)
 			if err != nil {
 				b.Fatal(err)
 			}

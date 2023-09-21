@@ -38,7 +38,8 @@ func NewString() string {
 //  year and having one duplicate.
 func NewRandom() (UUID, error) {
 	if !poolEnabled {
-		return NewRandomFromReader(rander)
+		var uuid UUID
+		return uuid, ReadRandom(rander, &uuid)
 	}
 	return newRandomFromPool()
 }
@@ -46,13 +47,22 @@ func NewRandom() (UUID, error) {
 // NewRandomFromReader returns a UUID based on bytes read from a given io.Reader.
 func NewRandomFromReader(r io.Reader) (UUID, error) {
 	var uuid UUID
+	return uuid, ReadRandom(r, &uuid)
+}
+
+// ReadRandom fills a random (version 4) UUID based on bytes read from a
+// given io.Reader. When combined with e.g. a bufio.Reader, this is an
+// efficient way to generate many UUIDs quickly.
+//
+// If an error was returned, the UUID may still be modified.
+func ReadRandom(r io.Reader, uuid *UUID) error {
 	_, err := io.ReadFull(r, uuid[:])
 	if err != nil {
-		return Nil, err
+		return err
 	}
 	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is 10
-	return uuid, nil
+	return nil
 }
 
 func newRandomFromPool() (UUID, error) {
