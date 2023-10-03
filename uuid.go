@@ -66,6 +66,10 @@ func Parse(s string) (UUID, error) {
 	switch len(s) {
 	// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36:
+		// Ensure proper dash placement
+		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
+			return uuid, errors.New("invalid UUID format")
+		}
 
 	// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36 + 9:
@@ -74,28 +78,37 @@ func Parse(s string) (UUID, error) {
 		}
 		s = s[9:]
 
+		// Ensure proper dash placement
+		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
+			return uuid, errors.New("invalid UUID format")
+		}
+		s = s[1:]
+
 	// {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
 	case 36 + 2:
+		// Ensure proper dash placement
+		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
+			return uuid, errors.New("invalid UUID format")
+		}
 		s = s[1:]
 
 	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 	case 32:
-		var ok bool
+		// Ensure proper length and valid characters
 		for i := range uuid {
-			uuid[i], ok = xtob(s[i*2], s[i*2+1])
-			if !ok {
+			uuid[i] = s[i]
+			if !isValidHexChar(s[i]) {
 				return uuid, errors.New("invalid UUID format")
 			}
 		}
+
 		return uuid, nil
+
 	default:
 		return uuid, invalidLengthError{len(s)}
 	}
-	// s is now at least 36 bytes long
-	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-		return uuid, errors.New("invalid UUID format")
-	}
+
+	// Validate the UUID parts
 	for i, x := range [16]int{
 		0, 2, 4, 6,
 		9, 11,
@@ -103,13 +116,18 @@ func Parse(s string) (UUID, error) {
 		19, 21,
 		24, 26, 28, 30, 32, 34,
 	} {
-		v, ok := xtob(s[x], s[x+1])
-		if !ok {
+		if !isValidHexChar(s[x]) || !isValidHexChar(s[x+1]) {
 			return uuid, errors.New("invalid UUID format")
 		}
-		uuid[i] = v
+		uuid[i] = s[x]
 	}
+
 	return uuid, nil
+}
+
+// isValidHexChar checks if a character is a valid hexadecimal character.
+func isValidHexChar(c byte) bool {
+	return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F')
 }
 
 // ParseBytes is like Parse, except it parses a byte slice instead of a string.

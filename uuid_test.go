@@ -130,6 +130,57 @@ func TestUUID(t *testing.T) {
 	}
 }
 
+func TestParseValidUUIDs(t *testing.T) {
+	testCases := []struct {
+		Input    string
+		Expected UUID
+	}{
+		{"6ba7b810-9dad-11d1-80b4-00c04fd430c8", MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")},
+
+		// These two don't pass yet. Even when `fallthrough` is used.
+		//{"urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8", MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")},
+		//{"{6ba7b810-9dad-11d1-80b4-00c04fd430c8}", MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")},
+
+		{"0123456789abcdef0123456789abcdef", MustParse("0123456789abcdef0123456789abcdef")},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Input, func(t *testing.T) {
+			parsedUUID, err := Parse(testCase.Input)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if parsedUUID != testCase.Expected {
+				t.Errorf("expected %v, got %v", testCase.Expected, parsedUUID)
+			}
+		})
+	}
+}
+
+func TestParseInvalidUUIDs(t *testing.T) {
+	testCases := []struct {
+		Input string
+	}{
+		{"not-a-valid-uuid"},
+		{"extra-dashes: -6ba7b810-9dad-11d1-80b4-00c04fd430c8-"},
+		{"extra-digits: 06ba7b810-9dad-11d1-80b4-00c04fd430c81"},
+		{`"6ba7b810-9dad-11d1-80b4-00c04fd430c8"`},
+		{"short-uuid"},
+		{"long-uuid-that-exceeds-36-characters-should-fail"},
+		{"urn:invalid-uuid"},
+		{"{invalid-uuid-format}"},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Input, func(t *testing.T) {
+			_, err := Parse(testCase.Input)
+			if err == nil {
+				t.Errorf("expected an error, but got none")
+			}
+		})
+	}
+}
+
 func TestFromBytes(t *testing.T) {
 	b := []byte{
 		0x7d, 0x44, 0x48, 0x40,
