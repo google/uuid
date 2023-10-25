@@ -294,3 +294,15 @@ func DisableRandPool() {
 	poolMu.Lock()
 	poolPos = randPoolSize
 }
+
+// UUIDs is a slice of UUID types
+type UUIDs []UUID
+
+// Strings returns a slice of the string form of each UUID in the received slice of UUIDs
+func (uuids UUIDs) Strings() []string {
+	var uuidStrs = make([]string, len(uuids))
+	for i, uuid := range uuids {
+		uuidStrs[i] = uuid.String()
+	}
+	return uuidStrs
+}
