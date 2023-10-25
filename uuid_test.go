@@ -743,8 +743,8 @@ func BenchmarkUUIDs_Strings(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	uuids := uuid.UUIDs{uuid1, uuid2}
+	uuids := UUIDs{uuid1, uuid2}
 	for i := 0; i < b.N; i++ {
-		uuid.Strings()
+		uuids.Strings()
 	}
 }
