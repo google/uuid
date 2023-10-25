@@ -733,3 +733,18 @@ func BenchmarkUUID_NewPooled(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkUUIDs_Strings(b *testing.B) {
+	uuid1, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if err != nil {
+		b.Fatal(err)
+	}
+	uuid2, err := Parse("7d444840-9dc0-11d1-b245-5ffdce74fad2")
+	if err != nil {
+		b.Fatal(err)
+	}
+	uuids := uuid.UUIDs{uuid1, uuid2}
+	for i := 0; i < b.N; i++ {
+		uuid.Strings()
+	}
+}
