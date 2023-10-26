@@ -7,6 +7,10 @@
 
 * UUIDs slice type with Strings() convenience method ([#133](https://github.com/google/uuid/issues/133)) ([cd5fbbd](https://github.com/google/uuid/commit/cd5fbbdd02f3e3467ac18940e07e062be1f864b4))
 
+### Fixes
+
+* Clarify that Parse's job is to parse but not necessarily validate strings. (Documents current behavior)
+
 ## [1.3.1](https://github.com/google/uuid/compare/v1.3.0...v1.3.1) (2023-08-18)
 
 
