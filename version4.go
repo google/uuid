@@ -9,7 +9,7 @@ import "io"
 // New creates a new random UUID or panics.  New is equivalent to
 // the expression
 //
-//    uuid.Must(uuid.NewRandom())
+// uuid.Must(uuid.NewRandom())
 func New() UUID {
 	return Must(NewRandom())
 }
@@ -17,7 +17,7 @@ func New() UUID {
 // NewString creates a new random UUID and returns it as a string or panics.
 // NewString is equivalent to the expression
 //
-//    uuid.New().String()
+// uuid.New().String()
 func NewString() string {
 	return Must(NewRandom()).String()
 }
@@ -31,11 +31,11 @@ func NewString() string {
 //
 // A note about uniqueness derived from the UUID Wikipedia entry:
 //
-//  Randomly generated UUIDs have 122 random bits.  One's annual risk of being
-//  hit by a meteorite is estimated to be one chance in 17 billion, that
-//  means the probability is about 0.00000000006 (6 × 10−11),
-//  equivalent to the odds of creating a few tens of trillions of UUIDs in a
-//  year and having one duplicate.
+//	Randomly generated UUIDs have 122 random bits.  One's annual risk of being
+//	hit by a meteorite is estimated to be one chance in 17 billion, that
+//	means the probability is about 0.00000000006 (6 × 10−11),
+//	equivalent to the odds of creating a few tens of trillions of UUIDs in a
+//	year and having one duplicate.
 func NewRandom() (UUID, error) {
 	if !poolEnabled {
 		return NewRandomFromReader(rander)
@@ -57,18 +57,9 @@ func NewRandomFromReader(r io.Reader) (UUID, error) {
 
 func newRandomFromPool() (UUID, error) {
 	var uuid UUID
-	poolMu.Lock()
-	if poolPos == randPoolSize {
-		_, err := io.ReadFull(rander, pool[:])
-		if err != nil {
-			poolMu.Unlock()
-			return Nil, err
-		}
-		poolPos = 0
+	if err := fill16BytesFromPool(uuid[:]); err != nil {
+		return Nil, err
 	}
-	copy(uuid[:], pool[poolPos:(poolPos+16)])
-	poolPos += 16
-	poolMu.Unlock()
 
 	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is 10
