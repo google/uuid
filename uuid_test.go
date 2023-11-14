@@ -73,9 +73,6 @@ var tests = []test{
 	{"f47ac10b58cc037285670e02b2c3d479", 0, RFC4122, true},
 	{"f47ac10b58cc037285670e02b2c3d4790", 0, Invalid, false},
 	{"f47ac10b58cc037285670e02b2c3d47", 0, Invalid, false},
-
-	{"01ee82e2-0b7f-68ce-b3a5-525400475911", 6, RFC4122, true},
-	{"018bcd9e-4f69-712e-9eb1-dcec29d8ebc3", 7, RFC4122, true},
 }
 
 var constants = []struct {

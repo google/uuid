@@ -41,21 +41,3 @@ func xtob(x1, x2 byte) (byte, bool) {
 	b2 := xvalues[x2]
 	return (b1 << 4) | b2, b1 != 255 && b2 != 255
 }
-
-// fill uuid (16byte) from poll
-func fill16BytesFromPool(b []byte) error {
-	poolMu.Lock()
-	if poolPos == randPoolSize {
-		_, err := io.ReadFull(rander, pool[:])
-		if err != nil {
-			poolMu.Unlock()
-			return err
-		}
-		poolPos = 0
-	}
-	copy(b, pool[poolPos:(poolPos+16)])
-	poolPos += 16
-	poolMu.Unlock()
-
-	return nil
-}
