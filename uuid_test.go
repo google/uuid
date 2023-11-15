@@ -73,6 +73,9 @@ var tests = []test{
 	{"f47ac10b58cc037285670e02b2c3d479", 0, RFC4122, true},
 	{"f47ac10b58cc037285670e02b2c3d4790", 0, Invalid, false},
 	{"f47ac10b58cc037285670e02b2c3d47", 0, Invalid, false},
+
+	{"01ee836c-e7c9-619d-929a-525400475911", 6, RFC4122, true},
+	{"018bd12c-58b0-7683-8a5b-8752d0e86651", 7, RFC4122, true},
 }
 
 var constants = []struct {
@@ -746,5 +749,116 @@ func BenchmarkUUIDs_Strings(b *testing.B) {
 	uuids := UUIDs{uuid1, uuid2}
 	for i := 0; i < b.N; i++ {
 		uuids.Strings()
+	}
+}
+
+func TestVersion6(t *testing.T) {
+	uuid1, err := NewV6()
+	if err != nil {
+		t.Fatalf("could not create UUID: %v", err)
+	}
+	uuid2, err := NewV6()
+	if err != nil {
+		t.Fatalf("could not create UUID: %v", err)
+	}
+
+	if uuid1 == uuid2 {
+		t.Errorf("%s:duplicate uuid", uuid1)
+	}
+	if v := uuid1.Version(); v != 6 {
+		t.Errorf("%s: version %s expected 6", uuid1, v)
+	}
+	if v := uuid2.Version(); v != 6 {
+		t.Errorf("%s: version %s expected 6", uuid2, v)
+	}
+	n1 := uuid1.NodeID()
+	n2 := uuid2.NodeID()
+	if !bytes.Equal(n1, n2) {
+		t.Errorf("Different nodes %x != %x", n1, n2)
+	}
+	t1 := uuid1.Time()
+	t2 := uuid2.Time()
+	q1 := uuid1.ClockSequence()
+	q2 := uuid2.ClockSequence()
+
+	switch {
+	case t1 == t2 && q1 == q2:
+		t.Error("time stopped")
+	case t1 > t2 && q1 == q2:
+		t.Error("time reversed")
+	case t1 < t2 && q1 != q2:
+		t.Error("clock sequence changed unexpectedly")
+	}
+}
+
+// uuid v7 time is only unix milliseconds, so
+// uuid1.Time() == uuid2.Time() is right, but uuid1 must != uuid2
+func TestVersion7(t *testing.T) {
+	SetRand(nil)
+	m := make(map[string]bool)
+	for x := 1; x < 32; x++ {
+		uuid, err := NewV7()
+		if err != nil {
+			t.Fatalf("could not create UUID: %v", err)
+		}
+		s := uuid.String()
+		if m[s] {
+			t.Errorf("NewV7 returned duplicated UUID %s", s)
+		}
+		m[s] = true
+		if v := uuid.Version(); v != 7 {
+			t.Errorf("UUID of version %s", v)
+		}
+		if uuid.Variant() != RFC4122 {
+			t.Errorf("UUID is variant %d", uuid.Variant())
+		}
+	}
+}
+
+// uuid v7 time is only unix milliseconds, so
+// uuid1.Time() == uuid2.Time() is right, but uuid1 must != uuid2
+func TestVersion7_pooled(t *testing.T) {
+	SetRand(nil)
+	EnableRandPool()
+	defer DisableRandPool()
+
+	m := make(map[string]bool)
+	for x := 1; x < 128; x++ {
+		uuid, err := NewV7()
+		if err != nil {
+			t.Fatalf("could not create UUID: %v", err)
+		}
+		s := uuid.String()
+		if m[s] {
+			t.Errorf("NewV7 returned duplicated UUID %s", s)
+		}
+		m[s] = true
+		if v := uuid.Version(); v != 7 {
+			t.Errorf("UUID of version %s", v)
+		}
+		if uuid.Variant() != RFC4122 {
+			t.Errorf("UUID is variant %d", uuid.Variant())
+		}
+	}
+}
+
+func TestVersion7FromReader(t *testing.T) {
+	myString := "8059ddhdle77cb52"
+	r := bytes.NewReader([]byte(myString))
+	r2 := bytes.NewReader([]byte(myString))
+	uuid1, err := NewV7FromReader(r)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	_, err = NewV7FromReader(r)
+	if err == nil {
+		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewV7FromReader may not be using the provided reader")
+	}
+	uuid3, err := NewV7FromReader(r2)
+	if err != nil {
+		t.Errorf("failed generating UUID from a reader")
+	}
+	if uuid1 != uuid3 {
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
 	}
 }
