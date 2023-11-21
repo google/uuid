@@ -108,7 +108,7 @@ func setClockSequence(seq int) {
 }
 
 // Time returns the time in 100s of nanoseconds since 15 Oct 1582 encoded in
-// uuid.  The time is only defined for version 1, 2 and 6, 7 UUIDs.
+// uuid.  The time is only defined for version 1, 2, 6 and 7 UUIDs.
 func (uuid UUID) Time() Time {
 	var t Time
 	switch uuid.Version() {

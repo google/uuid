@@ -19,7 +19,7 @@ import (
 //
 // NewV7 returns a Version 7 UUID based on the current time(Unix Epoch).
 // Uses the randomness pool if it was enabled with EnableRandPool.
-// NewV7 use NewRandom fill random bits, if error, NewV7 returns Nil and an error
+// On error, NewV7 returns Nil and an error
 func NewV7() (UUID, error) {
 	uuid, err := NewRandom()
 	if err != nil {
@@ -30,7 +30,8 @@ func NewV7() (UUID, error) {
 }
 
 // NewV7FromReader returns a Version 7 UUID based on the current time(Unix Epoch).
-// it use NewRandomFromReader fill random bits, if error, NewV7FromReader returns Nil and an error
+// it use NewRandomFromReader fill random bits.
+// On error, NewV7FromReader returns Nil and an error.
 func NewV7FromReader(r io.Reader) (UUID, error) {
 	uuid, err := NewRandomFromReader(r)
 	if err != nil {
