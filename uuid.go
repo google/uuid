@@ -186,8 +186,7 @@ func Must(uuid UUID, err error) UUID {
 	return uuid
 }
 
-// String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-// , or "" if uuid is invalid.
+// String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 func (uuid UUID) String() string {
 	var buf [36]byte
 	encodeHex(buf[:], uuid)
