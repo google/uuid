@@ -224,33 +224,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestBytes(t *testing.T) {
-	m := make(map[UUID]bool)
-	for x := 1; x < 32; x++ {
-		s := New()
-		if m[s] {
-			t.Errorf("New returned duplicated UUID %s", s)
-		}
-		m[s] = true
-		if s.String() != string(s.Bytes()) {
-			t.Error("uuid.String() don't equal uuid.string(Byte())")
-			continue
-		}
-		uuid, err := ParseBytes(s.Bytes())
-		if err != nil {
-			t.Errorf("New.String() returned %q which does not decode", s)
-			continue
-		}
-
-		if v := uuid.Version(); v != 4 {
-			t.Errorf("Random UUID of version %s", v)
-		}
-		if uuid.Variant() != RFC4122 {
-			t.Errorf("Random UUID is variant %d", uuid.Variant())
-		}
-	}
-}
-
 func TestClockSeq(t *testing.T) {
 	// Fake time.Now for this test to return a monotonically advancing time; restore it at end.
 	defer func(orig func() time.Time) { timeNow = orig }(timeNow)
@@ -315,6 +288,9 @@ func TestCoding(t *testing.T) {
 	}
 	if v := data.String(); v != text {
 		t.Errorf("%x: encoded to %s, expected %s", data, v, text)
+	}
+	if bs := data.Bytes(); string(bs) != text {
+		t.Errorf("%x: encoded to %s, expected %s", data, string(bs), text)
 	}
 	if v := data.URN(); v != urn {
 		t.Errorf("%x: urn is %s, expected %s", data, v, urn)
