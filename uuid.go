@@ -194,6 +194,18 @@ func (uuid UUID) String() string {
 	return string(buf[:])
 }
 
+// WriteTo write uuid to io.Writer
+func (uuid UUID) WriteTo(w io.Writer) (int64, error) {
+	i, err := w.Write(uuid[:])
+	return int64(i), err
+}
+
+// ReadFrom read a uuid from io.Reader
+func (uuid *UUID) ReadFrom(r io.Reader) (int64, error) {
+	i, err := io.ReadFull(r, uuid[:])
+	return int64(i), err
+}
+
 // URN returns the RFC 2141 URN form of uuid,
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,  or "" if uuid is invalid.
 func (uuid UUID) URN() string {
