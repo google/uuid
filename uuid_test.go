@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -603,6 +604,34 @@ func FuzzFromBytes(f *testing.F) {
 	f.Fuzz(func(t *testing.T, in []byte) {
 		FromBytes(in)
 	})
+}
+
+// TestValidate checks various scenarios for the Validate function
+func TestValidate(t *testing.T) {
+	testCases := []struct {
+		name   string
+		input  string
+		expect error
+	}{
+		{"Valid UUID", "123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Valid UUID with URN", "urn:uuid:123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Valid UUID with Braces", "{123e4567-e89b-12d3-a456-426655440000}", nil},
+		{"Valid UUID No Hyphens", "123e4567e89b12d3a456426655440000", nil},
+		{"Invalid UUID", "invalid-uuid", errors.New("invalid UUID length: 12")},
+		{"Invalid Length", "123", fmt.Errorf("invalid UUID length: %d", len("123"))},
+		{"Invalid URN Prefix", "urn:test:123e4567-e89b-12d3-a456-426655440000", fmt.Errorf("invalid urn prefix: %q", "urn:test:")},
+		{"Invalid Brackets", "[123e4567-e89b-12d3-a456-426655440000]", fmt.Errorf("invalid bracketed UUID format")},
+		{"Invalid UUID Format", "12345678gabc1234abcd1234abcd1234", fmt.Errorf("invalid UUID format")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.input)
+			if (err != nil) != (tc.expect != nil) || (err != nil && err.Error() != tc.expect.Error()) {
+				t.Errorf("Validate(%q) = %v, want %v", tc.input, err, tc.expect)
+			}
+		})
+	}
 }
 
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
