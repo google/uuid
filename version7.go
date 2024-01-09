@@ -20,6 +20,7 @@ import (
 // NewV7 returns a Version 7 UUID based on the current time(Unix Epoch).
 // Uses the randomness pool if it was enabled with EnableRandPool.
 // On error, NewV7 returns Nil and an error
+// Note: this implement only has 12 bit seq, maximum of 4096 uuids are generated in 1 milliseconds
 func NewV7() (UUID, error) {
 	uuid, err := NewRandom()
 	if err != nil {
@@ -44,7 +45,7 @@ func NewV7FromReader(r io.Reader) (UUID, error) {
 
 // makeV7 fill 48 bits time (uuid[0] - uuid[5]), set version b0111 (uuid[6])
 // uuid[8] already has the right version number (Variant is 10)
-// see function  NewV7 and NewV7FromReader
+// see function NewV7 and NewV7FromReader
 func makeV7(uuid []byte) {
 	/*
 		 0                   1                   2                   3
@@ -52,7 +53,7 @@ func makeV7(uuid []byte) {
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 		|                           unix_ts_ms                          |
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		|          unix_ts_ms           |  ver  |       rand_a          |
+		|          unix_ts_ms           |  ver  |rand_a (12 bit counter)|
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 		|var|                        rand_b                             |
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -61,7 +62,7 @@ func makeV7(uuid []byte) {
 	*/
 	_ = uuid[15] // bounds check
 
-	t := timeNow().UnixMilli()
+	t, s := getTimeV7()
 
 	uuid[0] = byte(t >> 40)
 	uuid[1] = byte(t >> 32)
@@ -70,6 +71,23 @@ func makeV7(uuid []byte) {
 	uuid[4] = byte(t >> 8)
 	uuid[5] = byte(t)
 
-	uuid[6] = 0x70 | (uuid[6] & 0x0F)
-	// uuid[8] has already has right version
+	uuid[6] = 0x70 | (0x0F & byte(s>>8))
+	uuid[7] = byte(s)
+}
+
+func getTimeV7() (int64, uint16) {
+
+	defer timeMu.Unlock()
+	timeMu.Lock()
+
+	if clockSeq == 0 {
+		setClockSequence(-1)
+	}
+	now := timeNow().UnixMilli()
+
+	if now <= lasttimev7 {
+		clockSeq = clockSeq + 1
+	}
+	lasttimev7 = now
+	return now, clockSeq
 }

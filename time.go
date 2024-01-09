@@ -27,6 +27,8 @@ var (
 	lasttime uint64 // last time we returned
 	clockSeq uint16 // clock sequence for this run
 
+	lasttimev7 int64 // for uuid v7
+
 	timeNow = time.Now // for testing
 )
 
@@ -67,12 +69,12 @@ func getTime() (Time, uint16, error) {
 }
 
 // ClockSequence returns the current clock sequence, generating one if not
-// already set.  The clock sequence is only used for Version 1 UUIDs.
+// already set.  The clock sequence is used for Version 1 and 7 UUIDs.
 //
 // The uuid package does not use global static storage for the clock sequence or
 // the last time a UUID was generated.  Unless SetClockSequence is used, a new
 // random clock sequence is generated the first time a clock sequence is
-// requested by ClockSequence, GetTime, or NewUUID.  (section 4.2.1.1)
+// requested by ClockSequence, GetTime, NewV7 or NewUUID.  (section 4.2.1.1)
 func ClockSequence() int {
 	defer timeMu.Unlock()
 	timeMu.Lock()
@@ -86,8 +88,9 @@ func clockSequence() int {
 	return int(clockSeq & 0x3fff)
 }
 
-// SetClockSequence sets the clock sequence to the lower 14 bits of seq.  Setting to
-// -1 causes a new sequence to be generated.
+// SetClockSequence sets the clock sequence to the lower 14 bits of seq
+// uuid v1 and v6 use 14 bits seq. uuid v7 use 12 bits seq.
+// Setting to -1 causes a new sequence to be generated.
 func SetClockSequence(seq int) {
 	defer timeMu.Unlock()
 	timeMu.Lock()
@@ -104,6 +107,7 @@ func setClockSequence(seq int) {
 	clockSeq = uint16(seq&0x3fff) | 0x8000 // Set our variant
 	if oldSeq != clockSeq {
 		lasttime = 0
+		lasttimev7 = 0
 	}
 }
 

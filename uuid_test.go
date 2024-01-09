@@ -825,7 +825,7 @@ func TestVersion6(t *testing.T) {
 func TestVersion7(t *testing.T) {
 	SetRand(nil)
 	m := make(map[string]bool)
-	for x := 1; x < 32; x++ {
+	for x := 1; x < 128; x++ {
 		uuid, err := NewV7()
 		if err != nil {
 			t.Fatalf("could not create UUID: %v", err)
@@ -887,7 +887,26 @@ func TestVersion7FromReader(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed generating UUID from a reader")
 	}
-	if uuid1 != uuid3 {
+	if uuid1 == uuid3 { // Montonicity
 		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+	}
+}
+
+func TestVersion7Monotonicity(t *testing.T) {
+	length := 4097 // [0x000 - 0xfff]
+	myString := "8059ddhdle77cb52"
+
+	SetClockSequence(0)
+
+	uuids := make([]string, length)
+	for i := 0; i < length; i++ {
+		uuidString, _ := NewV7FromReader(bytes.NewReader([]byte(myString)))
+		uuids[i] = uuidString.String()
+	}
+
+	for i := 1; i < len(uuids); i++ {
+		if uuids[i-1] > uuids[i] {
+			t.Errorf("expected seq  got %s > %s", uuids[i-1], uuids[i])
+		}
 	}
 }
