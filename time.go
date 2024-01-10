@@ -67,12 +67,12 @@ func getTime() (Time, uint16, error) {
 }
 
 // ClockSequence returns the current clock sequence, generating one if not
-// already set.  The clock sequence is used for Version 1 and 7 UUIDs.
+// already set. The clock sequence is only used for Version 1 UUIDs.
 //
 // The uuid package does not use global static storage for the clock sequence or
 // the last time a UUID was generated.  Unless SetClockSequence is used, a new
 // random clock sequence is generated the first time a clock sequence is
-// requested by ClockSequence, GetTime, NewV7 or NewUUID.  (section 4.2.1.1)
+// requested by ClockSequence, GetTime, or NewUUID. (section 4.2.1.1)
 func ClockSequence() int {
 	defer timeMu.Unlock()
 	timeMu.Lock()
