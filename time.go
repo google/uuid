@@ -27,8 +27,6 @@ var (
 	lasttime uint64 // last time we returned
 	clockSeq uint16 // clock sequence for this run
 
-	lasttimev7 int64 // for uuid v7
-
 	timeNow = time.Now // for testing
 )
 
@@ -89,7 +87,6 @@ func clockSequence() int {
 }
 
 // SetClockSequence sets the clock sequence to the lower 14 bits of seq
-// uuid v1 and v6 use 14 bits seq. uuid v7 use 12 bits seq.
 // Setting to -1 causes a new sequence to be generated.
 func SetClockSequence(seq int) {
 	defer timeMu.Unlock()
@@ -107,7 +104,6 @@ func setClockSequence(seq int) {
 	clockSeq = uint16(seq&0x3fff) | 0x8000 // Set our variant
 	if oldSeq != clockSeq {
 		lasttime = 0
-		lasttimev7 = 0
 	}
 }
 

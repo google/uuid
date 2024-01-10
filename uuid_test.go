@@ -874,8 +874,7 @@ func TestVersion7_pooled(t *testing.T) {
 func TestVersion7FromReader(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	r := bytes.NewReader([]byte(myString))
-	r2 := bytes.NewReader([]byte(myString))
-	uuid1, err := NewV7FromReader(r)
+	_, err := NewV7FromReader(r)
 	if err != nil {
 		t.Errorf("failed generating UUID from a reader")
 	}
@@ -883,30 +882,22 @@ func TestVersion7FromReader(t *testing.T) {
 	if err == nil {
 		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewV7FromReader may not be using the provided reader")
 	}
-	uuid3, err := NewV7FromReader(r2)
-	if err != nil {
-		t.Errorf("failed generating UUID from a reader")
-	}
-	if uuid1 == uuid3 { // Montonicity
-		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
-	}
 }
 
 func TestVersion7Monotonicity(t *testing.T) {
-	length := 4097 // [0x000 - 0xfff]
-	myString := "8059ddhdle77cb52"
-
-	SetClockSequence(0)
+	length := 1000
 
 	uuids := make([]string, length)
 	for i := 0; i < length; i++ {
-		uuidString, _ := NewV7FromReader(bytes.NewReader([]byte(myString)))
+		uuidString, _ := NewV7()
 		uuids[i] = uuidString.String()
+		time.Sleep(time.Millisecond)
+		//time.Sleep(time.Millisecond / 50)
 	}
 
 	for i := 1; i < len(uuids); i++ {
-		if uuids[i-1] > uuids[i] {
-			t.Errorf("expected seq  got %s > %s", uuids[i-1], uuids[i])
+		if uuids[i-1] >= uuids[i] {
+			t.Errorf("unexpected seq  got %s >= %s", uuids[i-1], uuids[i])
 		}
 	}
 }
