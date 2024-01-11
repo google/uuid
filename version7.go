@@ -86,6 +86,9 @@ const nanoPerMilli = 1000000
 // The returned (milli << 12 + seq) is guarenteed to be greater than
 // (milli << 12 + seq) returned by any previous call to getV7Time.
 func getV7Time() (milli, seq int64) {
+	timeMu.Lock()
+	defer timeMu.Unlock()
+
 	nano := timeNow().UnixNano()
 	milli = nano / nanoPerMilli
 	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
