@@ -825,7 +825,7 @@ func TestVersion6(t *testing.T) {
 func TestVersion7(t *testing.T) {
 	SetRand(nil)
 	m := make(map[string]bool)
-	for x := 1; x < 32; x++ {
+	for x := 1; x < 128; x++ {
 		uuid, err := NewV7()
 		if err != nil {
 			t.Fatalf("could not create UUID: %v", err)
@@ -874,8 +874,7 @@ func TestVersion7_pooled(t *testing.T) {
 func TestVersion7FromReader(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	r := bytes.NewReader([]byte(myString))
-	r2 := bytes.NewReader([]byte(myString))
-	uuid1, err := NewV7FromReader(r)
+	_, err := NewV7FromReader(r)
 	if err != nil {
 		t.Errorf("failed generating UUID from a reader")
 	}
@@ -883,11 +882,17 @@ func TestVersion7FromReader(t *testing.T) {
 	if err == nil {
 		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewV7FromReader may not be using the provided reader")
 	}
-	uuid3, err := NewV7FromReader(r2)
-	if err != nil {
-		t.Errorf("failed generating UUID from a reader")
-	}
-	if uuid1 != uuid3 {
-		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+}
+
+func TestVersion7Monotonicity(t *testing.T) {
+	length := 10000
+	u1 := Must(NewV7()).String()
+	for i := 0; i < length; i++ {
+		u2 := Must(NewV7()).String()
+		if u2 <= u1 {
+			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
+			break
+		}
+		u1 = u2
 	}
 }
