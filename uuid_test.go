@@ -885,19 +885,14 @@ func TestVersion7FromReader(t *testing.T) {
 }
 
 func TestVersion7Monotonicity(t *testing.T) {
-	length := 1000
-
-	uuids := make([]string, length)
+	length := 10000
+	u1 := Must(NewV7()).String()
 	for i := 0; i < length; i++ {
-		uuidString, _ := NewV7()
-		uuids[i] = uuidString.String()
-		time.Sleep(time.Millisecond)
-		//time.Sleep(time.Millisecond / 50)
-	}
-
-	for i := 1; i < len(uuids); i++ {
-		if uuids[i-1] >= uuids[i] {
-			t.Errorf("unexpected seq  got %s >= %s", uuids[i-1], uuids[i])
+		u2 := Must(NewV7()).String()
+		if u2 <= u1 {
+			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
+			break
 		}
+		u1 = u2
 	}
 }
