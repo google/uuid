@@ -74,7 +74,7 @@ func makeV7(uuid []byte) {
 	uuid[7] = byte(s)
 }
 
-// lastV7time is the last last time we returned stored as:
+// lastV7time is the last time we returned stored as:
 //
 //	52 bits of time in milliseconds since epoch
 //	12 bits of (fractional nanoseconds) >> 8
