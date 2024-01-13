@@ -896,3 +896,30 @@ func TestVersion7Monotonicity(t *testing.T) {
 		u1 = u2
 	}
 }
+
+type fakeRand struct{}
+
+func (g fakeRand) Read(bs []byte) (int, error) {
+	for i, _ := range bs {
+		bs[i] = 0x88
+	}
+	return len(bs), nil
+}
+
+func TestVersion7MonotonicityStrict(t *testing.T) {
+	timeNow = func() time.Time {
+		return time.Date(2008, 8, 8, 8, 8, 8, 8, time.UTC)
+	}
+	SetRand(fakeRand{})
+
+	length := 100000 // > 3906
+	u1 := Must(NewV7()).String()
+	for i := 0; i < length; i++ {
+		u2 := Must(NewV7()).String()
+		if u2 <= u1 {
+			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
+			break
+		}
+		u1 = u2
+	}
+}
