@@ -910,7 +910,12 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 	timeNow = func() time.Time {
 		return time.Date(2008, 8, 8, 8, 8, 8, 8, time.UTC)
 	}
+	defer func() {
+		timeNow = time.Now
+	}()
+
 	SetRand(fakeRand{})
+	defer SetRand(nil)
 
 	length := 100000 // > 3906
 	u1 := Must(NewV7()).String()
