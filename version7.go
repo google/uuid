@@ -83,7 +83,7 @@ var lastV7time int64
 const nanoPerMilli = 1000000
 
 // getV7Time returns the time in milliseconds and nanoseconds / 256.
-// The returned (milli << 12 + seq) is guarenteed to be greater than
+// The returned (milli << 12 + seq) is guaranteed to be greater than
 // (milli << 12 + seq) returned by any previous call to getV7Time.
 func getV7Time() (milli, seq int64) {
 	timeMu.Lock()
