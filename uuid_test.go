@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -608,6 +609,34 @@ func FuzzFromBytes(f *testing.F) {
 	})
 }
 
+// TestValidate checks various scenarios for the Validate function
+func TestValidate(t *testing.T) {
+	testCases := []struct {
+		name   string
+		input  string
+		expect error
+	}{
+		{"Valid UUID", "123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Valid UUID with URN", "urn:uuid:123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Valid UUID with Braces", "{123e4567-e89b-12d3-a456-426655440000}", nil},
+		{"Valid UUID No Hyphens", "123e4567e89b12d3a456426655440000", nil},
+		{"Invalid UUID", "invalid-uuid", errors.New("invalid UUID length: 12")},
+		{"Invalid Length", "123", fmt.Errorf("invalid UUID length: %d", len("123"))},
+		{"Invalid URN Prefix", "urn:test:123e4567-e89b-12d3-a456-426655440000", fmt.Errorf("invalid urn prefix: %q", "urn:test:")},
+		{"Invalid Brackets", "[123e4567-e89b-12d3-a456-426655440000]", fmt.Errorf("invalid bracketed UUID format")},
+		{"Invalid UUID Format", "12345678gabc1234abcd1234abcd1234", fmt.Errorf("invalid UUID format")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.input)
+			if (err != nil) != (tc.expect != nil) || (err != nil && err.Error() != tc.expect.Error()) {
+				t.Errorf("Validate(%q) = %v, want %v", tc.input, err, tc.expect)
+			}
+		})
+	}
+}
+
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
@@ -799,7 +828,7 @@ func TestVersion6(t *testing.T) {
 func TestVersion7(t *testing.T) {
 	SetRand(nil)
 	m := make(map[string]bool)
-	for x := 1; x < 32; x++ {
+	for x := 1; x < 128; x++ {
 		uuid, err := NewV7()
 		if err != nil {
 			t.Fatalf("could not create UUID: %v", err)
@@ -848,8 +877,7 @@ func TestVersion7_pooled(t *testing.T) {
 func TestVersion7FromReader(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	r := bytes.NewReader([]byte(myString))
-	r2 := bytes.NewReader([]byte(myString))
-	uuid1, err := NewV7FromReader(r)
+	_, err := NewV7FromReader(r)
 	if err != nil {
 		t.Errorf("failed generating UUID from a reader")
 	}
@@ -857,11 +885,49 @@ func TestVersion7FromReader(t *testing.T) {
 	if err == nil {
 		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewV7FromReader may not be using the provided reader")
 	}
-	uuid3, err := NewV7FromReader(r2)
-	if err != nil {
-		t.Errorf("failed generating UUID from a reader")
+}
+
+func TestVersion7Monotonicity(t *testing.T) {
+	length := 10000
+	u1 := Must(NewV7()).String()
+	for i := 0; i < length; i++ {
+		u2 := Must(NewV7()).String()
+		if u2 <= u1 {
+			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
+			break
+		}
+		u1 = u2
 	}
-	if uuid1 != uuid3 {
-		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid3)
+}
+
+type fakeRand struct{}
+
+func (g fakeRand) Read(bs []byte) (int, error) {
+	for i, _ := range bs {
+		bs[i] = 0x88
+	}
+	return len(bs), nil
+}
+
+func TestVersion7MonotonicityStrict(t *testing.T) {
+	timeNow = func() time.Time {
+		return time.Date(2008, 8, 8, 8, 8, 8, 8, time.UTC)
+	}
+	defer func() {
+		timeNow = time.Now
+	}()
+
+	SetRand(fakeRand{})
+	defer SetRand(nil)
+
+	length := 100000 // > 3906
+	u1 := Must(NewV7()).String()
+	for i := 0; i < length; i++ {
+		u2 := Must(NewV7()).String()
+		if u2 <= u1 {
+			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
+			break
+		}
+		u1 = u2
 	}
 }
