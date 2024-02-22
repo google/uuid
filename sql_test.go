@@ -15,7 +15,7 @@ func TestScan(t *testing.T) {
 	invalidTest := "f47ac10b-58cc-0372-8567-0e02b2c3d4"
 
 	byteTest := make([]byte, 16)
-	byteTestUUID := Must(Parse(stringTest))
+	byteTestUUID := MustParse(stringTest)
 	copy(byteTest, byteTestUUID[:])
 
 	// sunny day tests
@@ -105,7 +105,7 @@ func TestScan(t *testing.T) {
 
 func TestValue(t *testing.T) {
 	stringTest := "f47ac10b-58cc-0372-8567-0e02b2c3d479"
-	uuid := Must(Parse(stringTest))
+	uuid := MustParse(stringTest)
 	val, _ := uuid.Value()
 	if val != stringTest {
 		t.Error("Value() did not return expected string")
