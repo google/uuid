@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/google/uuid/compare/v1.6.0...v1.6.1) (2024-02-22)
+
+
+### Bug Fixes
+
+* use MustParse("xxx") instead of Must(Parse("xxxx")) ([#106](https://github.com/google/uuid/issues/106)) ([6e10cd1](https://github.com/google/uuid/commit/6e10cd1027e225e3ad7bfcc13c896abd165b02ef))
+
 ## [1.6.0](https://github.com/google/uuid/compare/v1.5.0...v1.6.0) (2024-01-16)
 
 
