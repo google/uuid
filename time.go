@@ -113,7 +113,9 @@ func (uuid UUID) Time() Time {
 	var t Time
 	switch uuid.Version() {
 	case 6:
-		time := binary.BigEndian.Uint64(uuid[:8]) // Ignore uuid[6] version b0110
+		time := int64(binary.BigEndian.Uint32(uuid[0:4])) << 28
+		time |= int64(binary.BigEndian.Uint16(uuid[4:6])) << 12
+		time |= int64(binary.BigEndian.Uint16(uuid[6:8]) & 0xfff)
 		t = Time(time)
 	case 7:
 		time := binary.BigEndian.Uint64(uuid[:8])
