@@ -10,7 +10,7 @@ import "encoding/binary"
 // It is expected that UUIDv6 will primarily be used in contexts where there are existing v1 UUIDs.
 // Systems that do not involve legacy UUIDv1 SHOULD consider using UUIDv7 instead.
 //
-// see https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-03#uuidv6
+// see https://datatracker.ietf.org/doc/html/rfc9562#uuidv6
 //
 // NewV6 returns a Version 6 UUID based on the current NodeID and clock
 // sequence, and the current time. If the NodeID has not been set by SetNodeID
