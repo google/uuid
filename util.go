@@ -5,6 +5,7 @@
 package uuid
 
 import (
+	"bytes"
 	"io"
 )
 
@@ -40,4 +41,9 @@ func xtob(x1, x2 byte) (byte, bool) {
 	b1 := xvalues[x1]
 	b2 := xvalues[x2]
 	return (b1 << 4) | b2, b1 != 255 && b2 != 255
+}
+
+// Compare returns an integer comparing two uuids lexicographically. The result will be 0 if a == b, -1 if a < b, and +1 if a > b.
+func Compare(a, b UUID) int {
+	return bytes.Compare(a[:], b[:])
 }

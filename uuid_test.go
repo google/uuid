@@ -918,10 +918,10 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 	defer SetRand(nil)
 
 	length := 100000 // > 3906
-	u1 := Must(NewV7()).String()
+	u1 := Must(NewV7())
 	for i := 0; i < length; i++ {
-		u2 := Must(NewV7()).String()
-		if u2 <= u1 {
+		u2 := Must(NewV7())
+		if Compare(u1, u2) >= 0 {
 			t.Errorf("monotonicity failed at #%d: %s(next) < %s(before)", i, u2, u1)
 			break
 		}
