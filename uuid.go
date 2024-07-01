@@ -16,7 +16,7 @@ import (
 )
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
-// 4122.
+// 9562.
 type UUID [16]byte
 
 // A Version represents a UUID's version.
@@ -28,11 +28,16 @@ type Variant byte
 // Constants returned by Variant.
 const (
 	Invalid   = Variant(iota) // Invalid UUID
-	RFC4122                   // The variant specified in RFC4122
+	RFC4122                   // The variant specified in RFC9562(obsoletes RFC4122).
 	Reserved                  // Reserved, NCS backward compatibility.
 	Microsoft                 // Reserved, Microsoft Corporation backward compatibility.
 	Future                    // Reserved for future definition.
 )
+
+// RFC9562 added V6 and V7 of UUID, but did not change specification of V1 and V4
+// implemented in this module. To avoid creating new major module version,
+// we still use RFC4122 for constant name.
+const Standard = RFC4122
 
 const randPoolSize = 16 * 16
 
@@ -57,7 +62,7 @@ func IsInvalidLengthError(err error) bool {
 }
 
 // Parse decodes s into a UUID or returns an error if it cannot be parsed.  Both
-// the standard UUID forms defined in RFC 4122
+// the standard UUID forms defined in RFC 9562
 // (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) are decoded.  In addition,
 // Parse accepts non-standard strings such as the raw hex encoding
