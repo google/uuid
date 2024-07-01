@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0](https://github.com/google/uuid/compare/v1.6.0...v1.7.0) (2024-07-01)
+
+
+### Features
+
+* add Compare function ([#163](https://github.com/google/uuid/issues/163)) ([e8d82d3](https://github.com/google/uuid/commit/e8d82d30a3eb641530570da83295395651911778))
+
+
+### Bug Fixes
+
+* incorrect timestamp in uuid v6 ([#161](https://github.com/google/uuid/issues/161)) ([53dda83](https://github.com/google/uuid/commit/53dda83ebe99c23d0e66c2472abdbf178097c3b8))
+* use MustParse("xxx") instead of Must(Parse("xxxx")) ([#106](https://github.com/google/uuid/issues/106)) ([6e10cd1](https://github.com/google/uuid/commit/6e10cd1027e225e3ad7bfcc13c896abd165b02ef))
+
 ## [1.6.0](https://github.com/google/uuid/compare/v1.5.0...v1.6.0) (2024-01-16)
 
 
