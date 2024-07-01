@@ -43,7 +43,7 @@ func xtob(x1, x2 byte) (byte, bool) {
 	return (b1 << 4) | b2, b1 != 255 && b2 != 255
 }
 
-// Compare compare two uuids
+// Compare returns an integer comparing two uuids lexicographically. The result will be 0 if a == b, -1 if a < b, and +1 if a > b.
 func Compare(a, b UUID) int {
 	return bytes.Compare(a[:], b[:])
 }
