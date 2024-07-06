@@ -4,10 +4,6 @@
 
 package uuid
 
-import (
-	"io"
-)
-
 // UUID version 7 features a time-ordered value field derived from the widely
 // implemented and well known Unix Epoch timestamp source,
 // the number of milliseconds seconds since midnight 1 Jan 1970 UTC, leap seconds excluded.
@@ -25,19 +21,6 @@ func NewV7() (UUID, error) {
 	if err != nil {
 		return uuid, err
 	}
-	makeV7(uuid[:])
-	return uuid, nil
-}
-
-// NewV7FromReader returns a Version 7 UUID based on the current time(Unix Epoch).
-// it use NewRandomFromReader fill random bits.
-// On error, NewV7FromReader returns Nil and an error.
-func NewV7FromReader(r io.Reader) (UUID, error) {
-	uuid, err := NewRandomFromReader(r)
-	if err != nil {
-		return uuid, err
-	}
-
 	makeV7(uuid[:])
 	return uuid, nil
 }
