@@ -59,12 +59,12 @@ func TestJSONUnmarshal(t *testing.T) {
 		},
 		"empty": {
 			data:           []byte(`{"ID1": ""}`),
-			expectedError:  ErrInvalidLength,
+			expectedError:  invalidLengthError{len: 0},
 			expectedResult: Nil,
 		},
 		"omitempty": {
 			data:           []byte(`{"ID2": ""}`),
-			expectedError:  ErrInvalidLength,
+			expectedError:  invalidLengthError{len: 0},
 			expectedResult: Nil,
 		},
 	}

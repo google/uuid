@@ -49,12 +49,36 @@ var (
 	pool        [randPoolSize]byte // protected with poolMu
 
 	ErrInvalidUUIDFormat      = errors.New("invalid UUID format")
-	ErrInvalidURNPrefix       = errors.New("invalid urn prefix")
 	ErrInvalidBracketedFormat = errors.New("invalid bracketed UUID format")
-	ErrInvalidLength          = errors.New("invalid UUID length")
 )
 
-// IsInvalidLengthError is matcher function for custom error ErrInvalidLength
+type URNPrefixError struct { prefix string }
+
+func (e URNPrefixError) Error() string {
+	return fmt.Sprintf("invalid urn prefix: %q", e.prefix)
+}
+
+func (e URNPrefixError) Is(target error) bool {
+	_, ok := target.(URNPrefixError)
+	return ok
+}
+
+var ErrInvalidURNPrefix = URNPrefixError{}
+
+type invalidLengthError struct{ len int }
+
+func (err invalidLengthError) Error() string {
+	return fmt.Sprintf("invalid UUID length: %d", err.len)
+}
+
+func (e invalidLengthError) Is(target error) bool {
+	_, ok := target.(invalidLengthError)
+	return ok
+}
+
+var ErrInvalidLength = invalidLengthError{}
+
+// IsInvalidLengthError is matcher function for custom error invalidLengthError
 func IsInvalidLengthError(err error) bool {
 	return errors.Is(err, ErrInvalidLength)
 }
@@ -77,7 +101,7 @@ func Parse(s string) (UUID, error) {
 	// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36 + 9:
 		if !strings.EqualFold(s[:9], "urn:uuid:") {
-			return uuid, fmt.Errorf("%w: %q", ErrInvalidURNPrefix, s[:9])
+			return uuid, URNPrefixError{s[:9]}
 		}
 		s = s[9:]
 
@@ -96,12 +120,13 @@ func Parse(s string) (UUID, error) {
 		}
 		return uuid, nil
 	default:
-		return uuid, fmt.Errorf("%w: %d", ErrInvalidLength, len(s))
+		return uuid, invalidLengthError{len(s)}
 	}
 	// s is now at least 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
 		return uuid, ErrInvalidUUIDFormat
+
 	}
 	for i, x := range [16]int{
 		0, 2, 4, 6,
@@ -126,7 +151,7 @@ func ParseBytes(b []byte) (UUID, error) {
 	case 36: // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36 + 9: // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 		if !bytes.EqualFold(b[:9], []byte("urn:uuid:")) {
-			return uuid, fmt.Errorf("%w: %q", ErrInvalidURNPrefix, b[:9])
+			return uuid, URNPrefixError{string(b[:9])}
 		}
 		b = b[9:]
 	case 36 + 2: // {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
@@ -141,7 +166,7 @@ func ParseBytes(b []byte) (UUID, error) {
 		}
 		return uuid, nil
 	default:
-		return uuid, fmt.Errorf("%w: %d", ErrInvalidLength, len(b))
+		return uuid, invalidLengthError{len(b)}
 	}
 	// s is now at least 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -190,12 +215,10 @@ func Must(uuid UUID, err error) UUID {
 }
 
 // Validate returns an error if s is not a properly formatted UUID in one of the following formats:
-//
-//	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//	urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//	{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
-//
+//   xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//   urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//   {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
 // It returns an error if the format is invalid, otherwise nil.
 func Validate(s string) error {
 	switch len(s) {
@@ -205,7 +228,7 @@ func Validate(s string) error {
 	// UUID with "urn:uuid:" prefix
 	case 36 + 9:
 		if !strings.EqualFold(s[:9], "urn:uuid:") {
-			return fmt.Errorf("%w: %q", ErrInvalidURNPrefix, s[:9])
+			return URNPrefixError{s[:9]}
 		}
 		s = s[9:]
 
@@ -226,7 +249,7 @@ func Validate(s string) error {
 		}
 
 	default:
-		return fmt.Errorf("%w: %d", ErrInvalidLength, len(s))
+		return invalidLengthError{len(s)}
 	}
 
 	// Check for standard UUID format
@@ -362,7 +385,7 @@ type UUIDs []UUID
 
 // Strings returns a string slice containing the string form of each UUID in uuids.
 func (uuids UUIDs) Strings() []string {
-	uuidStrs := make([]string, len(uuids))
+	var uuidStrs = make([]string, len(uuids))
 	for i, uuid := range uuids {
 		uuidStrs[i] = uuid.String()
 	}

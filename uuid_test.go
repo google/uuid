@@ -569,7 +569,7 @@ func TestWrongLength(t *testing.T) {
 func TestIsWrongLength(t *testing.T) {
 	_, err := Parse("12345")
 	if !IsInvalidLengthError(err) {
-		t.Errorf("expected error type is ErrInvalidLength")
+		t.Errorf("IsInvalidLength returned incorrect type %T", err)
 	}
 }
 
@@ -634,10 +634,8 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-var (
-	asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
-	asBytes  = []byte(asString)
-)
+var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
+var asBytes = []byte(asString)
 
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -902,7 +900,7 @@ func TestVersion7Monotonicity(t *testing.T) {
 type fakeRand struct{}
 
 func (g fakeRand) Read(bs []byte) (int, error) {
-	for i := range bs {
+	for i, _ := range bs {
 		bs[i] = 0x88
 	}
 	return len(bs), nil
