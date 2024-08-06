@@ -569,7 +569,7 @@ func TestWrongLength(t *testing.T) {
 func TestIsWrongLength(t *testing.T) {
 	_, err := Parse("12345")
 	if !IsInvalidLengthError(err) {
-		t.Errorf("expected error type is invalidLengthError")
+		t.Errorf("IsInvalidLength returned incorrect type %T", err)
 	}
 }
 
