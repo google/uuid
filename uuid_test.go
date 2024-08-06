@@ -290,6 +290,9 @@ func TestCoding(t *testing.T) {
 	if v := data.String(); v != text {
 		t.Errorf("%x: encoded to %s, expected %s", data, v, text)
 	}
+	if bs := data.Bytes(); string(bs) != text {
+		t.Errorf("%x: encoded to %s, expected %s", data, string(bs), text)
+	}
 	if v := data.URN(); v != urn {
 		t.Errorf("%x: urn is %s, expected %s", data, v, urn)
 	}
