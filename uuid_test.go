@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"strings"
@@ -882,6 +883,20 @@ func TestVersion7FromReader(t *testing.T) {
 	if err == nil {
 		t.Errorf("expecting an error as reader has no more bytes. Got uuid. NewV7FromReader may not be using the provided reader")
 	}
+}
+
+// NewV7FromReader returns a Version 7 UUID based on the current time and uses
+// NewRandomFromReader to get bytes 8-15 of the UUID. Bytes 0-7 from the reader
+// are read but are overwritten by the makeV7 function.
+// On error, NewV7FromReader returns Nil and an error.
+func NewV7FromReader(r io.Reader) (UUID, error) {
+	uuid, err := NewRandomFromReader(r)
+	if err != nil {
+		return uuid, err
+	}
+
+	makeV7(uuid[:])
+	return uuid, nil
 }
 
 func TestVersion7Monotonicity(t *testing.T) {
