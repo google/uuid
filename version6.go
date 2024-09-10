@@ -10,7 +10,7 @@ import "encoding/binary"
 // It is expected that UUIDv6 will primarily be used in contexts where there are existing v1 UUIDs.
 // Systems that do not involve legacy UUIDv1 SHOULD consider using UUIDv7 instead.
 //
-// see https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-03#uuidv6
+// see https://datatracker.ietf.org/doc/html/rfc9562#uuidv6
 //
 // NewV6 returns a Version 6 UUID based on the current NodeID and clock
 // sequence, and the current time. If the NodeID has not been set by SetNodeID
@@ -39,11 +39,15 @@ func NewV6() (UUID, error) {
 	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	*/
 
-	binary.BigEndian.PutUint64(uuid[0:], uint64(now))
-	binary.BigEndian.PutUint16(uuid[8:], seq)
+	timeHigh := uint32((now >> 28) & 0xffffffff)
+	timeMid := uint16((now >> 12) & 0xffff)
+	timeLow := uint16(now & 0x0fff)
+	timeLow |= 0x6000 // Version 6
 
-	uuid[6] = 0x60 | (uuid[6] & 0x0F)
-	uuid[8] = 0x80 | (uuid[8] & 0x3F)
+	binary.BigEndian.PutUint32(uuid[0:], timeHigh)
+	binary.BigEndian.PutUint16(uuid[4:], timeMid)
+	binary.BigEndian.PutUint16(uuid[6:], timeLow)
+	binary.BigEndian.PutUint16(uuid[8:], seq)
 
 	nodeMu.Lock()
 	if nodeID == zeroID {

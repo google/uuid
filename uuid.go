@@ -16,7 +16,7 @@ import (
 )
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
-// 4122.
+// 9562.
 type UUID [16]byte
 
 // A Version represents a UUID's version.
@@ -28,11 +28,16 @@ type Variant byte
 // Constants returned by Variant.
 const (
 	Invalid   = Variant(iota) // Invalid UUID
-	RFC4122                   // The variant specified in RFC4122
+	RFC4122                   // The variant specified in RFC9562(obsoletes RFC4122).
 	Reserved                  // Reserved, NCS backward compatibility.
 	Microsoft                 // Reserved, Microsoft Corporation backward compatibility.
 	Future                    // Reserved for future definition.
 )
+
+// RFC9562 added V6 and V7 of UUID, but did not change specification of V1 and V4
+// implemented in this module. To avoid creating new major module version,
+// we still use RFC4122 for constant name.
+const Standard = RFC4122
 
 const randPoolSize = 16 * 16
 
@@ -42,7 +47,23 @@ var (
 	poolMu      sync.Mutex
 	poolPos     = randPoolSize     // protected with poolMu
 	pool        [randPoolSize]byte // protected with poolMu
+
+	ErrInvalidUUIDFormat      = errors.New("invalid UUID format")
+	ErrInvalidBracketedFormat = errors.New("invalid bracketed UUID format")
 )
+
+type URNPrefixError struct { prefix string }
+
+func (e URNPrefixError) Error() string {
+	return fmt.Sprintf("invalid urn prefix: %q", e.prefix)
+}
+
+func (e URNPrefixError) Is(target error) bool {
+	_, ok := target.(URNPrefixError)
+	return ok
+}
+
+var ErrInvalidURNPrefix = URNPrefixError{}
 
 type invalidLengthError struct{ len int }
 
@@ -50,14 +71,20 @@ func (err invalidLengthError) Error() string {
 	return fmt.Sprintf("invalid UUID length: %d", err.len)
 }
 
-// IsInvalidLengthError is matcher function for custom error invalidLengthError
-func IsInvalidLengthError(err error) bool {
-	_, ok := err.(invalidLengthError)
+func (e invalidLengthError) Is(target error) bool {
+	_, ok := target.(invalidLengthError)
 	return ok
 }
 
+var ErrInvalidLength = invalidLengthError{}
+
+// IsInvalidLengthError is matcher function for custom error invalidLengthError
+func IsInvalidLengthError(err error) bool {
+	return errors.Is(err, ErrInvalidLength)
+}
+
 // Parse decodes s into a UUID or returns an error if it cannot be parsed.  Both
-// the standard UUID forms defined in RFC 4122
+// the standard UUID forms defined in RFC 9562
 // (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) are decoded.  In addition,
 // Parse accepts non-standard strings such as the raw hex encoding
@@ -74,7 +101,7 @@ func Parse(s string) (UUID, error) {
 	// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36 + 9:
 		if !strings.EqualFold(s[:9], "urn:uuid:") {
-			return uuid, fmt.Errorf("invalid urn prefix: %q", s[:9])
+			return uuid, URNPrefixError{s[:9]}
 		}
 		s = s[9:]
 
@@ -88,7 +115,7 @@ func Parse(s string) (UUID, error) {
 		for i := range uuid {
 			uuid[i], ok = xtob(s[i*2], s[i*2+1])
 			if !ok {
-				return uuid, errors.New("invalid UUID format")
+				return uuid, ErrInvalidUUIDFormat
 			}
 		}
 		return uuid, nil
@@ -98,7 +125,8 @@ func Parse(s string) (UUID, error) {
 	// s is now at least 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-		return uuid, errors.New("invalid UUID format")
+		return uuid, ErrInvalidUUIDFormat
+
 	}
 	for i, x := range [16]int{
 		0, 2, 4, 6,
@@ -109,7 +137,7 @@ func Parse(s string) (UUID, error) {
 	} {
 		v, ok := xtob(s[x], s[x+1])
 		if !ok {
-			return uuid, errors.New("invalid UUID format")
+			return uuid, ErrInvalidUUIDFormat
 		}
 		uuid[i] = v
 	}
@@ -123,7 +151,7 @@ func ParseBytes(b []byte) (UUID, error) {
 	case 36: // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	case 36 + 9: // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 		if !bytes.EqualFold(b[:9], []byte("urn:uuid:")) {
-			return uuid, fmt.Errorf("invalid urn prefix: %q", b[:9])
+			return uuid, URNPrefixError{string(b[:9])}
 		}
 		b = b[9:]
 	case 36 + 2: // {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
@@ -133,7 +161,7 @@ func ParseBytes(b []byte) (UUID, error) {
 		for i := 0; i < 32; i += 2 {
 			uuid[i/2], ok = xtob(b[i], b[i+1])
 			if !ok {
-				return uuid, errors.New("invalid UUID format")
+				return uuid, ErrInvalidUUIDFormat
 			}
 		}
 		return uuid, nil
@@ -143,7 +171,7 @@ func ParseBytes(b []byte) (UUID, error) {
 	// s is now at least 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	if b[8] != '-' || b[13] != '-' || b[18] != '-' || b[23] != '-' {
-		return uuid, errors.New("invalid UUID format")
+		return uuid, ErrInvalidUUIDFormat
 	}
 	for i, x := range [16]int{
 		0, 2, 4, 6,
@@ -154,7 +182,7 @@ func ParseBytes(b []byte) (UUID, error) {
 	} {
 		v, ok := xtob(b[x], b[x+1])
 		if !ok {
-			return uuid, errors.New("invalid UUID format")
+			return uuid, ErrInvalidUUIDFormat
 		}
 		uuid[i] = v
 	}
@@ -200,14 +228,14 @@ func Validate(s string) error {
 	// UUID with "urn:uuid:" prefix
 	case 36 + 9:
 		if !strings.EqualFold(s[:9], "urn:uuid:") {
-			return fmt.Errorf("invalid urn prefix: %q", s[:9])
+			return URNPrefixError{s[:9]}
 		}
 		s = s[9:]
 
 	// UUID enclosed in braces
 	case 36 + 2:
 		if s[0] != '{' || s[len(s)-1] != '}' {
-			return fmt.Errorf("invalid bracketed UUID format")
+			return ErrInvalidBracketedFormat
 		}
 		s = s[1 : len(s)-1]
 
@@ -216,7 +244,7 @@ func Validate(s string) error {
 		for i := 0; i < len(s); i += 2 {
 			_, ok := xtob(s[i], s[i+1])
 			if !ok {
-				return errors.New("invalid UUID format")
+				return ErrInvalidUUIDFormat
 			}
 		}
 
@@ -227,11 +255,11 @@ func Validate(s string) error {
 	// Check for standard UUID format
 	if len(s) == 36 {
 		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-			return errors.New("invalid UUID format")
+			return ErrInvalidUUIDFormat
 		}
 		for _, x := range []int{0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34} {
 			if _, ok := xtob(s[x], s[x+1]); !ok {
-				return errors.New("invalid UUID format")
+				return ErrInvalidUUIDFormat
 			}
 		}
 	}
