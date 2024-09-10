@@ -275,6 +275,13 @@ func (uuid UUID) String() string {
 	return string(buf[:])
 }
 
+// Bytes returns the bytes form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
+func (uuid UUID) Bytes() []byte {
+	var buf [36]byte
+	encodeHex(buf[:], uuid)
+	return buf[:]
+}
+
 // URN returns the RFC 2141 URN form of uuid,
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,  or "" if uuid is invalid.
 func (uuid UUID) URN() string {
