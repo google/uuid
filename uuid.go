@@ -107,6 +107,9 @@ func Parse(s string) (UUID, error) {
 
 	// {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
 	case 36 + 2:
+		if s[0] != '{' || s[37] != '}' {
+			return uuid, fmt.Errorf("invalid prefix/suffix: got %q and %q, want '{' and '}'", s[0], s[37])
+		}
 		s = s[1:]
 
 	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -155,6 +158,9 @@ func ParseBytes(b []byte) (UUID, error) {
 		}
 		b = b[9:]
 	case 36 + 2: // {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+		if b[0] != '{' || b[37] != '}' {
+			return uuid, fmt.Errorf("invalid prefix/suffix: got %q and %q, want '{' and '}'", b[0], b[37])
+		}
 		b = b[1:]
 	case 32: // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 		var ok bool
