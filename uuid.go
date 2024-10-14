@@ -224,6 +224,14 @@ func Validate(s string) error {
 	switch len(s) {
 	// Standard UUID format
 	case 36:
+		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
+			return ErrInvalidUUIDFormat
+		}
+		for _, x := range []int{0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34} {
+			if _, ok := xtob(s[x], s[x+1]); !ok {
+				return ErrInvalidUUIDFormat
+			}
+		}
 
 	// UUID with "urn:uuid:" prefix
 	case 36 + 9:
@@ -250,18 +258,6 @@ func Validate(s string) error {
 
 	default:
 		return invalidLengthError{len(s)}
-	}
-
-	// Check for standard UUID format
-	if len(s) == 36 {
-		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-			return ErrInvalidUUIDFormat
-		}
-		for _, x := range []int{0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34} {
-			if _, ok := xtob(s[x], s[x+1]); !ok {
-				return ErrInvalidUUIDFormat
-			}
-		}
 	}
 
 	return nil
