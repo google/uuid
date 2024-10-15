@@ -45,11 +45,16 @@ func (t Time) UnixTime() (sec, nsec int64) {
 func GetTime() (Time, uint16, error) {
 	defer timeMu.Unlock()
 	timeMu.Lock()
-	return getTime()
+	return getTime(nil)
 }
 
-func getTime() (Time, uint16, error) {
-	t := timeNow()
+func getTime(customTime *time.Time) (Time, uint16, error) {
+	var t time.Time
+	if customTime == nil { // When not provided, use the current time
+		t = timeNow()
+	} else {
+		t = *customTime
+	}
 
 	// If we don't have a clock sequence already, set one.
 	if clockSeq == 0 {
