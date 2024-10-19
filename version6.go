@@ -32,9 +32,10 @@ func NewV6() (UUID, error) {
 // NewV6WithTime returns a Version 6 UUID based on the current NodeID, clock
 // sequence, and a specified time. It is similar to the NewV6 function, but allows
 // you to specify the time. If time is passed as nil, then the current time is used.
+//
 // There is a limit on how many UUIDs can be generated for the same time, so if you
-// are generating multiple UUIDs, it is recommended to increment the time
-// If getTime fails to return the current NewV6 returns Nil and an error.
+// are generating multiple UUIDs, it is recommended to increment the time.
+// If getTime fails to return the current NewV6WithTime returns Nil and an error.
 func NewV6WithTime(customTime *time.Time) (UUID, error) {
 	now, seq, err := getTime(customTime)
 	if err != nil {
