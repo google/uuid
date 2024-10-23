@@ -1,7 +1,6 @@
 package uuid
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -24,7 +23,6 @@ func TestGetTime(t *testing.T) {
 				if err != nil {
 					t.Errorf("timeParse unexpected error: %v", err)
 				}
-				fmt.Println(parsed.Unix())
 				return &parsed
 			},
 			expectedTime: 1728984743,
