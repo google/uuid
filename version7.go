@@ -95,9 +95,16 @@ func getV7Time() (milli, seq int64) {
 	seq = (nano - milli*nanoPerMilli) >> 8
 	now := milli<<12 + seq
 	if now <= lastV7time {
-		now = lastV7time + 1
-		milli = now >> 12
-		seq = now & 0xfff
+		// uuid ver bits may eat seq carry
+		if seq == 0xfff {
+			milli = milli + 1
+			seq = 0
+			now = milli<<12 + seq
+		} else {
+			now = lastV7time + 1
+			milli = now >> 12
+			seq = now & 0xfff
+		}
 	}
 	lastV7time = now
 	return milli, seq
