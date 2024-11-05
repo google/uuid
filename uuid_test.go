@@ -541,6 +541,31 @@ func TestRandomFromReader(t *testing.T) {
 	}
 }
 
+func TestVersion7FromCustomTime(t *testing.T) {
+	// Test with specific timestamp.
+	layout := "2006-01-02 15:04:05.000 -0700"
+
+	ts, err := time.Parse(layout, "2024-10-25 08:58:09.662 +0000")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	uuid, err := NewV7FromTime(ts)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(uuid) != 16 {
+		t.Fatalf("expected UUID length of 16, got %d", len(uuid))
+	}
+
+	// Check if the timestamp part is correctly encoded.
+	expectedPrefix := "0192c2e5-bf7e-7000-"
+	if !strings.HasPrefix(uuid.String(), expectedPrefix) {
+		t.Fatalf("expected UUID to start with %s, got %s", expectedPrefix, uuid)
+	}
+}
+
 func TestRandPool(t *testing.T) {
 	myString := "8059ddhdle77cb52"
 	EnableRandPool()

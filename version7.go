@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"io"
+	"time"
 )
 
 // UUID version 7 features a time-ordered value field derived from the widely
@@ -25,7 +26,7 @@ func NewV7() (UUID, error) {
 	if err != nil {
 		return uuid, err
 	}
-	makeV7(uuid[:])
+	makeV7(uuid[:], timeNow())
 	return uuid, nil
 }
 
@@ -38,37 +39,47 @@ func NewV7FromReader(r io.Reader) (UUID, error) {
 		return uuid, err
 	}
 
-	makeV7(uuid[:])
+	makeV7(uuid[:], timeNow())
+	return uuid, nil
+}
+
+// NewV7FromTime returns a Version 7 UUID based on the provided time.
+func NewV7FromTime(t time.Time) (UUID, error) {
+	uuid, err := NewRandom()
+	if err != nil {
+		return uuid, err
+	}
+	makeV7(uuid[:], t)
 	return uuid, nil
 }
 
 // makeV7 fill 48 bits time (uuid[0] - uuid[5]), set version b0111 (uuid[6])
 // uuid[8] already has the right version number (Variant is 10)
 // see function NewV7 and NewV7FromReader
-func makeV7(uuid []byte) {
+func makeV7(uuid []byte, t time.Time) {
 	/*
-		 0                   1                   2                   3
-		 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		|                           unix_ts_ms                          |
-		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		|          unix_ts_ms           |  ver  |  rand_a (12 bit seq)  |
-		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		|var|                        rand_b                             |
-		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-		|                            rand_b                             |
-		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	    0                   1                   2                   3
+	    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |                           unix_ts_ms                          |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |          unix_ts_ms           |  ver  |  rand_a (12 bit seq)  |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |var|                        rand_b                             |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	   |                            rand_b                             |
+	   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 	*/
 	_ = uuid[15] // bounds check
 
-	t, s := getV7Time()
+	m, s := getV7TimeFromTime(t)
 
-	uuid[0] = byte(t >> 40)
-	uuid[1] = byte(t >> 32)
-	uuid[2] = byte(t >> 24)
-	uuid[3] = byte(t >> 16)
-	uuid[4] = byte(t >> 8)
-	uuid[5] = byte(t)
+	uuid[0] = byte(m >> 40)
+	uuid[1] = byte(m >> 32)
+	uuid[2] = byte(m >> 24)
+	uuid[3] = byte(m >> 16)
+	uuid[4] = byte(m >> 8)
+	uuid[5] = byte(m)
 
 	uuid[6] = 0x70 | (0x0F & byte(s>>8))
 	uuid[7] = byte(s)
@@ -82,14 +93,14 @@ var lastV7time int64
 
 const nanoPerMilli = 1000000
 
-// getV7Time returns the time in milliseconds and nanoseconds / 256.
+// getV7TimeFromTime returns the time in milliseconds and nanoseconds / 256 for a custom time.
 // The returned (milli << 12 + seq) is guaranteed to be greater than
 // (milli << 12 + seq) returned by any previous call to getV7Time.
-func getV7Time() (milli, seq int64) {
+func getV7TimeFromTime(t time.Time) (milli, seq int64) {
 	timeMu.Lock()
 	defer timeMu.Unlock()
 
-	nano := timeNow().UnixNano()
+	nano := t.UnixNano()
 	milli = nano / nanoPerMilli
 	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
 	seq = (nano - milli*nanoPerMilli) >> 8
