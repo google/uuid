@@ -8,11 +8,14 @@ import (
 	"sync"
 )
 
+// nodeid represents the node id being used in Version 1 and 2 UUIDs
+type nodeid [6]byte
+
 var (
 	nodeMu sync.Mutex
-	ifname string  // name of interface being used
-	nodeID [6]byte // hardware for version 1 UUIDs
-	zeroID [6]byte // nodeID with only 0's
+	ifname string // name of interface being used
+	nodeID nodeid // hardware for version 1 UUIDs
+	zeroID nodeid // nodeID with only 0's
 )
 
 // NodeInterface returns the name of the interface from which the NodeID was
