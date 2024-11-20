@@ -212,3 +212,20 @@ func TestNullUUIDUnmarshalJSON(t *testing.T) {
 		t.Errorf("expected nil when unmarshalling null, got %s", err)
 	}
 }
+
+func TestNullUUIDIsZero(t *testing.T) {
+	var nu NullUUID
+	if nu.IsZero() {
+		t.Error("expected false got true")
+	}
+
+	nu.Valid = true
+	if !nu.IsZero() {
+		t.Error("expected true got false")
+	}
+
+	nu.UUID = Max
+	if nu.IsZero() {
+		t.Error("expected false got true")
+	}
+}

@@ -17,15 +17,14 @@ var jsonNull = []byte("null")
 // NullUUID implements the SQL driver.Scanner interface so
 // it can be used as a scan destination:
 //
-//  var u uuid.NullUUID
-//  err := db.QueryRow("SELECT name FROM foo WHERE id=?", id).Scan(&u)
-//  ...
-//  if u.Valid {
-//     // use u.UUID
-//  } else {
-//     // NULL value
-//  }
-//
+//	var u uuid.NullUUID
+//	err := db.QueryRow("SELECT name FROM foo WHERE id=?", id).Scan(&u)
+//	...
+//	if u.Valid {
+//	   // use u.UUID
+//	} else {
+//	   // NULL value
+//	}
 type NullUUID struct {
 	UUID  UUID
 	Valid bool // Valid is true if UUID is not NULL
@@ -115,4 +114,9 @@ func (nu *NullUUID) UnmarshalJSON(data []byte) error {
 	err := json.Unmarshal(data, &nu.UUID)
 	nu.Valid = err == nil
 	return err
+}
+
+// IsZero determine whether the value is zero
+func (nu NullUUID) IsZero() bool {
+	return nu.Valid && nu.UUID == Nil
 }

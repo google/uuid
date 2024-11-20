@@ -928,3 +928,15 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func TestUUIDIsZero(t *testing.T) {
+	var u UUID
+	if !u.IsZero() {
+		t.Error("expected true got false")
+	}
+
+	u = New()
+	if u.IsZero() {
+		t.Error("expected false got true")
+	}
+}

@@ -52,7 +52,7 @@ var (
 	ErrInvalidBracketedFormat = errors.New("invalid bracketed UUID format")
 )
 
-type URNPrefixError struct { prefix string }
+type URNPrefixError struct{ prefix string }
 
 func (e URNPrefixError) Error() string {
 	return fmt.Sprintf("invalid urn prefix: %q", e.prefix)
@@ -215,10 +215,12 @@ func Must(uuid UUID, err error) UUID {
 }
 
 // Validate returns an error if s is not a properly formatted UUID in one of the following formats:
-//   xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//   {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
+//	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//	urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//	{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
 // It returns an error if the format is invalid, otherwise nil.
 func Validate(s string) error {
 	switch len(s) {
@@ -313,6 +315,11 @@ func (uuid UUID) Variant() Variant {
 // Version returns the version of uuid.
 func (uuid UUID) Version() Version {
 	return Version(uuid[6] >> 4)
+}
+
+// IsZero determine whether the value is zero
+func (uuid UUID) IsZero() bool {
+	return uuid == Nil
 }
 
 func (v Version) String() string {
