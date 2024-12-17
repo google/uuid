@@ -884,6 +884,32 @@ func TestVersion7FromReader(t *testing.T) {
 	}
 }
 
+func TestVersion7FromReaderWithTime(t *testing.T) {
+	myString := "8059ddhdle77cb52"
+	// other tests affects `lastV7time`, so we need to reset it
+	lastV7time = 0
+	timeFunc := func() time.Time {
+		return time.Date(1992, time.November, 5, 8, 8, 8, 8, time.UTC)
+	}
+
+	id, err := NewV7FromReaderWithTime(bytes.NewReader([]byte(myString)), timeFunc)
+	if err != nil {
+		t.Fatal("failed generating UUID from a reader with time")
+	}
+	if id.String() != "00a7dc05-8640-7000-ac65-373763623532" {
+		t.Errorf("expected deterministic result 00a7dc05-8640-7000-ac65-373763623532 got %s", id.String())
+	}
+
+	id, err = NewV7FromReaderWithTime(bytes.NewReader([]byte(myString)), timeFunc)
+	if err != nil {
+		t.Fatal("failed generating UUID from a reader with time")
+	}
+
+	if id.String() != "00a7dc05-8640-7001-ac65-373763623532" {
+		t.Errorf("expected deterministic result on sequential call 00a7dc05-8640-7001-ac65-373763623532 got %s", id.String())
+	}
+}
+
 func TestVersion7Monotonicity(t *testing.T) {
 	length := 10000
 	u1 := Must(NewV7()).String()
