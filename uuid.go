@@ -13,6 +13,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"unsafe"
 )
 
 // A UUID is a 128 bit (16 byte) Universal Unique IDentifier as defined in RFC
@@ -52,7 +53,7 @@ var (
 	ErrInvalidBracketedFormat = errors.New("invalid bracketed UUID format")
 )
 
-type URNPrefixError struct { prefix string }
+type URNPrefixError struct{ prefix string }
 
 func (e URNPrefixError) Error() string {
 	return fmt.Sprintf("invalid urn prefix: %q", e.prefix)
@@ -215,10 +216,12 @@ func Must(uuid UUID, err error) UUID {
 }
 
 // Validate returns an error if s is not a properly formatted UUID in one of the following formats:
-//   xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//   {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
+//	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//	urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//	{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
 // It returns an error if the format is invalid, otherwise nil.
 func Validate(s string) error {
 	switch len(s) {
@@ -275,6 +278,19 @@ func (uuid UUID) String() string {
 	return string(buf[:])
 }
 
+func (u UUID) Equal(other UUID) bool {
+	return u == other
+}
+
+// You are sure that the string created will not be modified
+func (uuid UUID) StringUnsafe() string {
+	var buf [36]byte
+	b := buf[:]
+	encodeHexNew(b, uuid)
+
+	return *(*string)(unsafe.Pointer(&b))
+}
+
 // URN returns the RFC 2141 URN form of uuid,
 // urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,  or "" if uuid is invalid.
 func (uuid UUID) URN() string {
@@ -284,16 +300,87 @@ func (uuid UUID) URN() string {
 	return string(buf[:])
 }
 
+func (uuid UUID) URNUnsafe() string {
+	var buf [36 + 9]byte
+	b := buf[:]
+	copy(b, "urn:uuid:")
+	encodeHexNew(b[9:], uuid)
+
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+// SetZero sets the UUID to zero.
+func (u *UUID) SetZero() {
+	*u = Nil
+}
+
 func encodeHex(dst []byte, uuid UUID) {
-	hex.Encode(dst, uuid[:4])
+	hex.Encode(dst[:8], uuid[:4])
 	dst[8] = '-'
+
+	// Encode bytes 4-6
 	hex.Encode(dst[9:13], uuid[4:6])
 	dst[13] = '-'
+
+	// Encode bytes 6-8
 	hex.Encode(dst[14:18], uuid[6:8])
 	dst[18] = '-'
+
+	// Encode bytes 8-10
 	hex.Encode(dst[19:23], uuid[8:10])
 	dst[23] = '-'
+
+	// Encode the remaining 6 bytes
 	hex.Encode(dst[24:], uuid[10:])
+
+}
+
+func encodeHexNew(dst []byte, uuid UUID) {
+
+	hexDigits := "0123456789abcdef"
+
+	dst[8] = '-'
+	dst[13] = '-'
+	dst[18] = '-'
+	dst[23] = '-'
+
+	// every byte to format
+	dst[0] = hexDigits[uuid[0]>>4]
+	dst[1] = hexDigits[uuid[0]&0x0F]
+	dst[2] = hexDigits[uuid[1]>>4]
+	dst[3] = hexDigits[uuid[1]&0x0F]
+	dst[4] = hexDigits[uuid[2]>>4]
+	dst[5] = hexDigits[uuid[2]&0x0F]
+	dst[6] = hexDigits[uuid[3]>>4]
+	dst[7] = hexDigits[uuid[3]&0x0F]
+
+	dst[9] = hexDigits[uuid[4]>>4]
+	dst[10] = hexDigits[uuid[4]&0x0F]
+	dst[11] = hexDigits[uuid[5]>>4]
+	dst[12] = hexDigits[uuid[5]&0x0F]
+
+	dst[14] = hexDigits[uuid[6]>>4]
+	dst[15] = hexDigits[uuid[6]&0x0F]
+	dst[16] = hexDigits[uuid[7]>>4]
+	dst[17] = hexDigits[uuid[7]&0x0F]
+
+	dst[19] = hexDigits[uuid[8]>>4]
+	dst[20] = hexDigits[uuid[8]&0x0F]
+	dst[21] = hexDigits[uuid[9]>>4]
+	dst[22] = hexDigits[uuid[9]&0x0F]
+
+	dst[24] = hexDigits[uuid[10]>>4]
+	dst[25] = hexDigits[uuid[10]&0x0F]
+	dst[26] = hexDigits[uuid[11]>>4]
+	dst[27] = hexDigits[uuid[11]&0x0F]
+	dst[28] = hexDigits[uuid[12]>>4]
+	dst[29] = hexDigits[uuid[12]&0x0F]
+	dst[30] = hexDigits[uuid[13]>>4]
+	dst[31] = hexDigits[uuid[13]&0x0F]
+	dst[32] = hexDigits[uuid[14]>>4]
+	dst[33] = hexDigits[uuid[14]&0x0F]
+	dst[34] = hexDigits[uuid[15]>>4]
+	dst[35] = hexDigits[uuid[15]&0x0F]
 }
 
 // Variant returns the variant encoded in uuid.
@@ -389,5 +476,19 @@ func (uuids UUIDs) Strings() []string {
 	for i, uuid := range uuids {
 		uuidStrs[i] = uuid.String()
 	}
+	return uuidStrs
+}
+
+func (uuids UUIDs) StringsUnsafe() []string {
+	l := len(uuids)
+	if l == 0 {
+		return nil
+	}
+
+	uuidStrs := make([]string, l)
+	for i := 0; i < l; i++ {
+		uuidStrs[i] = uuids[i].StringUnsafe()
+	}
+
 	return uuidStrs
 }

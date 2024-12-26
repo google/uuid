@@ -134,6 +134,19 @@ func TestUUID(t *testing.T) {
 	}
 }
 
+func TestEqual(t *testing.T) {
+	uuid := New()
+
+	another, err := Parse(uuid.StringUnsafe())
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
+	if !uuid.Equal(another) {
+		t.Fatalf("Equal() got %v expected true", uuid)
+	}
+
+}
+
 func TestFromBytes(t *testing.T) {
 	b := []byte{
 		0x7d, 0x44, 0x48, 0x40,
@@ -637,6 +650,26 @@ func TestValidate(t *testing.T) {
 var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
 var asBytes = []byte(asString)
 
+func BenchmarkHexNew(b *testing.B) {
+	var dst [36]byte
+	var uuid UUID
+	for i := 0; i < b.N; i++ {
+		encodeHexNew(dst[:], uuid)
+	}
+
+	//00000000-0000-0000-0000-000000000000
+}
+
+func BenchmarkHex(b *testing.B) {
+	var dst [36]byte
+	var uuid UUID
+	for i := 0; i < b.N; i++ {
+		encodeHex(dst[:], uuid)
+	}
+
+	//00000000-0000-0000-0000-000000000000
+}
+
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Parse(asString)
@@ -698,6 +731,22 @@ func BenchmarkUUID_String(b *testing.B) {
 		if uuid.String() == "" {
 			b.Fatal("invalid uuid")
 		}
+
+	}
+
+}
+
+func BenchmarkUUID_String_unsafe(b *testing.B) {
+	uuid, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		if uuid.StringUnsafe() == "" {
+			b.Fatal("invalid uuid")
+		}
+
 	}
 }
 
@@ -710,6 +759,22 @@ func BenchmarkUUID_URN(b *testing.B) {
 		if uuid.URN() == "" {
 			b.Fatal("invalid uuid")
 		}
+
+	}
+
+}
+
+func BenchmarkUUID_URN_unsafe(b *testing.B) {
+	uuid, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		if uuid.URNUnsafe() == "" {
+			b.Fatal("invalid uuid")
+		}
+
 	}
 }
 
@@ -778,6 +843,21 @@ func BenchmarkUUIDs_Strings(b *testing.B) {
 	uuids := UUIDs{uuid1, uuid2}
 	for i := 0; i < b.N; i++ {
 		uuids.Strings()
+	}
+}
+
+func BenchmarkUUIDs_Strings_unsafe(b *testing.B) {
+	uuid1, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if err != nil {
+		b.Fatal(err)
+	}
+	uuid2, err := Parse("7d444840-9dc0-11d1-b245-5ffdce74fad2")
+	if err != nil {
+		b.Fatal(err)
+	}
+	uuids := UUIDs{uuid1, uuid2}
+	for i := 0; i < b.N; i++ {
+		uuids.StringsUnsafe()
 	}
 }
 
