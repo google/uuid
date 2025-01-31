@@ -103,33 +103,47 @@ func TestNullUUIDMarshalText(t *testing.T) {
 
 func TestNullUUIDUnmarshalText(t *testing.T) {
 	tests := []struct {
-		nullUUID NullUUID
+		name        string
+		data        []byte
+		expected    NullUUID
+		expectedErr bool
 	}{
 		{
-			nullUUID: NullUUID{},
+			name:        "null text",
+			data:        []byte("null"),
+			expected:    NullUUID{Valid: false},
+			expectedErr: true, // "null" is not a valid UUID format
 		},
 		{
-			nullUUID: NullUUID{
-				UUID:  MustParse("12345678-abcd-1234-abcd-0123456789ab"),
-				Valid: true,
-			},
+			name:        "valid UUID",
+			data:        []byte("12345678-abcd-1234-abcd-0123456789ab"),
+			expected:    NullUUID{UUID: MustParse("12345678-abcd-1234-abcd-0123456789ab"), Valid: true},
+			expectedErr: false,
+		},
+		{
+			name:        "invalid text",
+			data:        []byte("invalid"),
+			expected:    NullUUID{Valid: false},
+			expectedErr: true,
 		},
 	}
+
 	for _, test := range tests {
-		var uText []byte
-		var uErr error
-		nuText, nuErr := test.nullUUID.MarshalText()
-		if test.nullUUID.Valid {
-			uText, uErr = test.nullUUID.UUID.MarshalText()
-		} else {
-			uText = []byte("null")
-		}
-		if nuErr != uErr {
-			t.Errorf("expected error %e, got %e", nuErr, uErr)
-		}
-		if !bytes.Equal(nuText, uText) {
-			t.Errorf("expected text data %s, got %s", string(nuText), string(uText))
-		}
+		t.Run(test.name, func(t *testing.T) {
+			var nu NullUUID
+			err := nu.UnmarshalText(test.data)
+			if (err != nil) != test.expectedErr {
+				t.Errorf("expected error %v, got %v", test.expectedErr, err)
+			}
+			if !test.expectedErr {
+				if nu.Valid != test.expected.Valid {
+					t.Errorf("expected Valid %v, got %v", test.expected.Valid, nu.Valid)
+				}
+				if nu.Valid && nu.UUID != test.expected.UUID {
+					t.Errorf("expected UUID %v, got %v", test.expected.UUID, nu.UUID)
+				}
+			}
+		})
 	}
 }
 
@@ -162,6 +176,50 @@ func TestNullUUIDMarshalBinary(t *testing.T) {
 		if !bytes.Equal(nuBinary, uBinary) {
 			t.Errorf("expected binary data %s, got %s", string(nuBinary), string(uBinary))
 		}
+	}
+}
+
+func TestNullUUIDUnmarshalBinary(t *testing.T) {
+	validUUID := MustParse("12345678-abcd-1234-abcd-0123456789ab")
+	validData := validUUID[:]
+	invalidData := []byte{1, 2, 3}
+
+	tests := []struct {
+		name        string
+		data        []byte
+		expected    NullUUID
+		expectedErr bool
+	}{
+		{
+			name:        "valid data",
+			data:        validData,
+			expected:    NullUUID{UUID: validUUID, Valid: true},
+			expectedErr: false,
+		},
+		{
+			name:        "invalid length",
+			data:        invalidData,
+			expected:    NullUUID{},
+			expectedErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var nu NullUUID
+			err := nu.UnmarshalBinary(test.data)
+			if (err != nil) != test.expectedErr {
+				t.Errorf("expected error %v, got %v", test.expectedErr, err)
+			}
+			if !test.expectedErr {
+				if nu.Valid != test.expected.Valid {
+					t.Errorf("expected Valid %v, got %v", test.expected.Valid, nu.Valid)
+				}
+				if nu.Valid && nu.UUID != test.expected.UUID {
+					t.Errorf("expected UUID %v, got %v", test.expected.UUID, nu.UUID)
+				}
+			}
+		})
 	}
 }
 
