@@ -928,3 +928,30 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func TestLittleEndian(t *testing.T) {
+	tcs := []struct {
+		in   string
+		want []byte
+	}{
+		{
+			in:   "7d444840-9dc0-11d1-b245-5ffdce74fad2",
+			want: []byte{0x40, 0x48, 0x44, 0x7d, 0xc0, 0x9d, 0xd1, 0x11, 0xb2, 0x45, 0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2}},
+		{
+			in:   "f47ac10b-58cc-0372-8567-0e02b2c3d479",
+			want: []byte{0x0b, 0xc1, 0x7a, 0xf4, 0xcc, 0x58, 0x72, 0x03, 0x85, 0x67, 0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79},
+		},
+	}
+	for _, tc := range tcs {
+		t.Run("LittleEndian "+tc.in, func(t *testing.T) {
+			u, err := Parse(tc.in)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := u.LittleEndian()
+			if !bytes.Equal(got, tc.want) {
+				t.Fatalf("%s.LittleEndian() = %v, want %v", tc.in, got, tc.want)
+			}
+		})
+	}
+}

@@ -296,6 +296,12 @@ func encodeHex(dst []byte, uuid UUID) {
 	hex.Encode(dst[24:], uuid[10:])
 }
 
+// LittleEndian returns the UUID in GUID little endian byte order.
+func (uuid UUID) LittleEndian() []byte {
+	mixed := []byte{uuid[3], uuid[2], uuid[1], uuid[0], uuid[5], uuid[4], uuid[7], uuid[6]}
+	return append(mixed, uuid[8:]...)
+}
+
 // Variant returns the variant encoded in uuid.
 func (uuid UUID) Variant() Variant {
 	switch {
