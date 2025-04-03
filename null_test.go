@@ -212,3 +212,35 @@ func TestNullUUIDUnmarshalJSON(t *testing.T) {
 		t.Errorf("expected nil when unmarshalling null, got %s", err)
 	}
 }
+
+func TestNullUUIDIsZero(t *testing.T) {
+	tests := []struct {
+		nullUUID NullUUID
+		expected bool
+	}{
+		{
+			nullUUID: NullUUID{},
+			expected: true,
+		},
+		{
+			nullUUID: NullUUID{
+				Valid: true,
+				UUID:  UUID{},
+			},
+			expected: true,
+		},
+		{
+			nullUUID: NullUUID{
+				Valid: true,
+				UUID:  New(),
+			},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		if test.nullUUID.IsZero() != test.expected {
+			t.Errorf("expected %t, got %t", test.expected, test.nullUUID.IsZero())
+		}
+	}
+}

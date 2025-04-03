@@ -928,3 +928,47 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func TestUUIDIsZero(t *testing.T) {
+	tests := []struct {
+		uuid     UUID
+		expected bool
+	}{
+		{
+			uuid:     UUID{},
+			expected: true,
+		},
+		{
+			uuid:     New(),
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		if test.uuid.IsZero() != test.expected {
+			t.Errorf("expected %t, got %t", test.expected, test.uuid.IsZero())
+		}
+	}
+}
+
+func TestUUIDsIsZero(t *testing.T) {
+	tests := []struct {
+		uuids    UUIDs
+		expected bool
+	}{
+		{
+			uuids:    UUIDs{},
+			expected: true,
+		},
+		{
+			uuids:    UUIDs{New()},
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		if test.uuids.IsZero() != test.expected {
+			t.Errorf("expected %t, got %t", test.expected, test.uuids.IsZero())
+		}
+	}
+}
