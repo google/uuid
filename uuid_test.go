@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
@@ -926,5 +927,101 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 			break
 		}
 		u1 = u2
+	}
+}
+
+func TestVersion8(t *testing.T) {
+	m := make(map[string]bool)
+	for i := 0; i < 128; i++ {
+		uuid, err := NewV8()
+		if err != nil {
+			t.Fatalf("NewV8 failed: %v", err)
+		}
+
+		s := uuid.String()
+		if m[s] {
+			t.Errorf("Duplicate UUID generated: %s", s)
+		}
+		m[s] = true
+
+		if uuid.Version() != 8 {
+			t.Errorf("Expected version 8, got %d", uuid.Version())
+		}
+		if uuid.Variant() != RFC4122 {
+			t.Errorf("Expected variant RFC4122, got %d", uuid.Variant())
+		}
+	}
+}
+
+func TestVersion8FromReader(t *testing.T) {
+	customA := uint64(0x123456789ABC)
+	customB := uint64(0xDEF)
+	r := bytes.NewReader(make([]byte, 16)) // Simulated random reader
+
+	uuid, err := NewV8FromReader(customA, customB, r)
+	if err != nil {
+		t.Fatalf("NewV8FromReader failed: %v", err)
+	}
+
+	if uuid.Version() != 8 {
+		t.Errorf("Expected version 8, got %d", uuid.Version())
+	}
+	if uuid.Variant() != RFC4122 {
+		t.Errorf("Expected variant RFC4122, got %d", uuid.Variant())
+	}
+
+	gotCustomA := binary.BigEndian.Uint64(append([]byte{0, 0}, uuid[:6]...)) & 0xFFFFFFFFFFFF
+	if gotCustomA != customA {
+		t.Errorf("Expected custom_a %x, got %x", customA, gotCustomA)
+	}
+
+	gotCustomB := binary.BigEndian.Uint16(uuid[6:8]) & 0xFFF
+	if gotCustomB != uint16(customB) {
+		t.Errorf("Expected custom_b %x, got %x", customB, gotCustomB)
+	}
+}
+
+func TestVersion8Uniqueness(t *testing.T) {
+	m := make(map[string]bool)
+	for i := 0; i < 10000; i++ {
+		uuid, err := NewV8()
+		if err != nil {
+			t.Fatalf("NewV8 failed: %v", err)
+		}
+
+		s := uuid.String()
+		if m[s] {
+			t.Fatalf("Duplicate UUID found: %s", s)
+		}
+		m[s] = true
+	}
+}
+
+func TestVersion8Monotonicity(t *testing.T) {
+	u1 := Must(NewV8TimeBased(nil)).String()
+	for i := 0; i < 10000; i++ {
+		u2 := Must(NewV8TimeBased(nil)).String()
+		if u2 <= u1 {
+			t.Errorf("Monotonicity failed at iteration %d: %s < %s", i, u2, u1)
+			break
+		}
+		u1 = u2
+	}
+}
+
+func TestVersion8WithNilRandomReader(t *testing.T) {
+	customA := uint64(0x123456789ABC)
+	customB := uint64(0xDEF)
+
+	uuid, err := NewV8FromReader(customA, customB, nil)
+	if err != nil {
+		t.Fatalf("NewV8FromReader failed with nil random reader: %v", err)
+	}
+
+	if uuid.Version() != 8 {
+		t.Errorf("Expected version 8, got %d", uuid.Version())
+	}
+	if uuid.Variant() != RFC4122 {
+		t.Errorf("Expected variant RFC4122, got %d", uuid.Variant())
 	}
 }
