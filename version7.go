@@ -29,6 +29,11 @@ func NewV7() (UUID, error) {
 	return uuid, nil
 }
 
+// NewV7String creates a new random Version 7 UUID and returns it as a string or panics.
+func NewV7String() string {
+	return Must(NewV7()).String()
+}
+
 // NewV7FromReader returns a Version 7 UUID based on the current time(Unix Epoch).
 // it use NewRandomFromReader fill random bits.
 // On error, NewV7FromReader returns Nil and an error.
