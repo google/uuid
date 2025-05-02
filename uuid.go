@@ -83,16 +83,11 @@ func IsInvalidLengthError(err error) bool {
 	return errors.Is(err, ErrInvalidLength)
 }
 
-// Parse decodes s into a UUID or returns an error if it cannot be parsed.  Both
-// the standard UUID forms defined in RFC 9562
+// StrictParse decodes s into a UUID or returns an error if it cannot be parsed.
+// Only the standard UUID forms defined in RFC 9562
 // (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
-// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) are decoded.  In addition,
-// Parse accepts non-standard strings such as the raw hex encoding
-// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx and 38 byte "Microsoft style" encodings,
-// e.g.  {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}.  Only the middle 36 bytes are
-// examined in the latter case.  Parse should not be used to validate strings as
-// it parses non-standard encodings as indicated above.
-func Parse(s string) (UUID, error) {
+// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) are decoded.
+func StrictParse(s string) (UUID, error) {
 	var uuid UUID
 	switch len(s) {
 	// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -105,28 +100,13 @@ func Parse(s string) (UUID, error) {
 		}
 		s = s[9:]
 
-	// {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
-	case 36 + 2:
-		s = s[1:]
-
-	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-	case 32:
-		var ok bool
-		for i := range uuid {
-			uuid[i], ok = xtob(s[i*2], s[i*2+1])
-			if !ok {
-				return uuid, ErrInvalidUUIDFormat
-			}
-		}
-		return uuid, nil
 	default:
 		return uuid, invalidLengthError{len(s)}
 	}
-	// s is now at least 36 bytes long
+	// s is now 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
 		return uuid, ErrInvalidUUIDFormat
-
 	}
 	for i, x := range [16]int{
 		0, 2, 4, 6,
@@ -144,8 +124,38 @@ func Parse(s string) (UUID, error) {
 	return uuid, nil
 }
 
-// ParseBytes is like Parse, except it parses a byte slice instead of a string.
-func ParseBytes(b []byte) (UUID, error) {
+// Parse decodes s into a UUID or returns an error if it cannot be parsed.  Both
+// the standard UUID forms defined in RFC 9562
+// (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
+// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) are decoded.  In addition,
+// Parse accepts non-standard strings such as the raw hex encoding
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx and 38 byte "Microsoft style" encodings,
+// e.g.  {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}.  Only the middle 36 bytes are
+// examined in the latter case.  Parse should not be used to validate strings as
+// it parses non-standard encodings as indicated above.
+func Parse(s string) (UUID, error) {
+	var uuid UUID
+	switch len(s) {
+	// {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+	case 36 + 2:
+		s = s[1 : len(s)-1]
+	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	case 32:
+		var ok bool
+		for i := range uuid {
+			uuid[i], ok = xtob(s[i*2], s[i*2+1])
+			if !ok {
+				return uuid, ErrInvalidUUIDFormat
+			}
+		}
+		return uuid, nil
+	}
+	return StrictParse(s)
+}
+
+// StrictParseBytes is like StrictParse, except it parses a byte slice instead
+// of a string.
+func StrictParseBytes(b []byte) (UUID, error) {
 	var uuid UUID
 	switch len(b) {
 	case 36: // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -154,21 +164,10 @@ func ParseBytes(b []byte) (UUID, error) {
 			return uuid, URNPrefixError{string(b[:9])}
 		}
 		b = b[9:]
-	case 36 + 2: // {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
-		b = b[1:]
-	case 32: // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-		var ok bool
-		for i := 0; i < 32; i += 2 {
-			uuid[i/2], ok = xtob(b[i], b[i+1])
-			if !ok {
-				return uuid, ErrInvalidUUIDFormat
-			}
-		}
-		return uuid, nil
 	default:
 		return uuid, invalidLengthError{len(b)}
 	}
-	// s is now at least 36 bytes long
+	// s is now 36 bytes long
 	// it must be of the form  xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 	if b[8] != '-' || b[13] != '-' || b[18] != '-' || b[23] != '-' {
 		return uuid, ErrInvalidUUIDFormat
@@ -187,6 +186,36 @@ func ParseBytes(b []byte) (UUID, error) {
 		uuid[i] = v
 	}
 	return uuid, nil
+}
+
+// ParseBytes is like Parse, except it parses a byte slice instead of a string.
+func ParseBytes(b []byte) (UUID, error) {
+	var uuid UUID
+	switch len(b) {
+	case 36 + 2: // {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+		b = b[1 : len(b)-1]
+	case 32: // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		var ok bool
+		for i := 0; i < 32; i += 2 {
+			uuid[i/2], ok = xtob(b[i], b[i+1])
+			if !ok {
+				return uuid, ErrInvalidUUIDFormat
+			}
+		}
+		return uuid, nil
+	}
+	return StrictParseBytes(b)
+}
+
+// MustStrictParse is like StrictParse but panics if the string cannot be
+// parsed. It simplifies safe initialization of global variables holding
+// compiled UUIDs.
+func MustStrictParse(s string) UUID {
+	uuid, err := StrictParse(s)
+	if err != nil {
+		panic(`uuid: StrictParse(` + s + `): ` + err.Error())
+	}
+	return uuid
 }
 
 // MustParse is like Parse but panics if the string cannot be parsed.
@@ -214,13 +243,14 @@ func Must(uuid UUID, err error) UUID {
 	return uuid
 }
 
-// Validate returns an error if s is not a properly formatted UUID in one of the following formats:
-//   xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//   {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+// StrictValidate returns an error if s is not a properly formatted UUID in one
+// of the following formats:
+//
+//   - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//   - urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//
 // It returns an error if the format is invalid, otherwise nil.
-func Validate(s string) error {
+func StrictValidate(s string) error {
 	switch len(s) {
 	// Standard UUID format
 	case 36:
@@ -232,6 +262,34 @@ func Validate(s string) error {
 		}
 		s = s[9:]
 
+	default:
+		return invalidLengthError{len(s)}
+	}
+
+	// Check for standard UUID format
+	if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
+		return ErrInvalidUUIDFormat
+	}
+	for _, x := range []int{0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34} {
+		if _, ok := xtob(s[x], s[x+1]); !ok {
+			return ErrInvalidUUIDFormat
+		}
+	}
+
+	return nil
+}
+
+// Validate returns an error if s is not a properly formatted UUID in one of the
+// following formats:
+//
+//   - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//   - urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//   - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//   - {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
+// It returns an error if the format is invalid, otherwise nil.
+func Validate(s string) error {
+	switch len(s) {
 	// UUID enclosed in braces
 	case 36 + 2:
 		if s[0] != '{' || s[len(s)-1] != '}' {
@@ -247,24 +305,10 @@ func Validate(s string) error {
 				return ErrInvalidUUIDFormat
 			}
 		}
-
-	default:
-		return invalidLengthError{len(s)}
+		return nil
 	}
 
-	// Check for standard UUID format
-	if len(s) == 36 {
-		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-			return ErrInvalidUUIDFormat
-		}
-		for _, x := range []int{0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34} {
-			if _, ok := xtob(s[x], s[x+1]); !ok {
-				return ErrInvalidUUIDFormat
-			}
-		}
-	}
-
-	return nil
+	return StrictValidate(s)
 }
 
 // String returns the string form of uuid, xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx

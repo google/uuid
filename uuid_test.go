@@ -17,66 +17,67 @@ import (
 )
 
 type test struct {
-	in      string
-	version Version
-	variant Variant
-	isuuid  bool
+	in           string
+	version      Version
+	variant      Variant
+	isuuid       bool
+	isStrictUUID bool
 }
 
 var tests = []test{
-	{"f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, RFC4122, true},
-	{"f47ac10b-58cc-1372-8567-0e02b2c3d479", 1, RFC4122, true},
-	{"f47ac10b-58cc-2372-8567-0e02b2c3d479", 2, RFC4122, true},
-	{"f47ac10b-58cc-3372-8567-0e02b2c3d479", 3, RFC4122, true},
-	{"f47ac10b-58cc-4372-8567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-5372-8567-0e02b2c3d479", 5, RFC4122, true},
-	{"f47ac10b-58cc-6372-8567-0e02b2c3d479", 6, RFC4122, true},
-	{"f47ac10b-58cc-7372-8567-0e02b2c3d479", 7, RFC4122, true},
-	{"f47ac10b-58cc-8372-8567-0e02b2c3d479", 8, RFC4122, true},
-	{"f47ac10b-58cc-9372-8567-0e02b2c3d479", 9, RFC4122, true},
-	{"f47ac10b-58cc-a372-8567-0e02b2c3d479", 10, RFC4122, true},
-	{"f47ac10b-58cc-b372-8567-0e02b2c3d479", 11, RFC4122, true},
-	{"f47ac10b-58cc-c372-8567-0e02b2c3d479", 12, RFC4122, true},
-	{"f47ac10b-58cc-d372-8567-0e02b2c3d479", 13, RFC4122, true},
-	{"f47ac10b-58cc-e372-8567-0e02b2c3d479", 14, RFC4122, true},
-	{"f47ac10b-58cc-f372-8567-0e02b2c3d479", 15, RFC4122, true},
+	{"f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, RFC4122, true, true},
+	{"f47ac10b-58cc-1372-8567-0e02b2c3d479", 1, RFC4122, true, true},
+	{"f47ac10b-58cc-2372-8567-0e02b2c3d479", 2, RFC4122, true, true},
+	{"f47ac10b-58cc-3372-8567-0e02b2c3d479", 3, RFC4122, true, true},
+	{"f47ac10b-58cc-4372-8567-0e02b2c3d479", 4, RFC4122, true, true},
+	{"f47ac10b-58cc-5372-8567-0e02b2c3d479", 5, RFC4122, true, true},
+	{"f47ac10b-58cc-6372-8567-0e02b2c3d479", 6, RFC4122, true, true},
+	{"f47ac10b-58cc-7372-8567-0e02b2c3d479", 7, RFC4122, true, true},
+	{"f47ac10b-58cc-8372-8567-0e02b2c3d479", 8, RFC4122, true, true},
+	{"f47ac10b-58cc-9372-8567-0e02b2c3d479", 9, RFC4122, true, true},
+	{"f47ac10b-58cc-a372-8567-0e02b2c3d479", 10, RFC4122, true, true},
+	{"f47ac10b-58cc-b372-8567-0e02b2c3d479", 11, RFC4122, true, true},
+	{"f47ac10b-58cc-c372-8567-0e02b2c3d479", 12, RFC4122, true, true},
+	{"f47ac10b-58cc-d372-8567-0e02b2c3d479", 13, RFC4122, true, true},
+	{"f47ac10b-58cc-e372-8567-0e02b2c3d479", 14, RFC4122, true, true},
+	{"f47ac10b-58cc-f372-8567-0e02b2c3d479", 15, RFC4122, true, true},
 
-	{"urn:uuid:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
-	{"URN:UUID:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-1567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-2567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-3567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-4567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-5567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-6567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-7567-0e02b2c3d479", 4, Reserved, true},
-	{"f47ac10b-58cc-4372-8567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-4372-9567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-4372-a567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-4372-b567-0e02b2c3d479", 4, RFC4122, true},
-	{"f47ac10b-58cc-4372-c567-0e02b2c3d479", 4, Microsoft, true},
-	{"f47ac10b-58cc-4372-d567-0e02b2c3d479", 4, Microsoft, true},
-	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true},
-	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true},
+	{"urn:uuid:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true, true},
+	{"URN:UUID:f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-0567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-1567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-2567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-3567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-4567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-5567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-6567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-7567-0e02b2c3d479", 4, Reserved, true, true},
+	{"f47ac10b-58cc-4372-8567-0e02b2c3d479", 4, RFC4122, true, true},
+	{"f47ac10b-58cc-4372-9567-0e02b2c3d479", 4, RFC4122, true, true},
+	{"f47ac10b-58cc-4372-a567-0e02b2c3d479", 4, RFC4122, true, true},
+	{"f47ac10b-58cc-4372-b567-0e02b2c3d479", 4, RFC4122, true, true},
+	{"f47ac10b-58cc-4372-c567-0e02b2c3d479", 4, Microsoft, true, true},
+	{"f47ac10b-58cc-4372-d567-0e02b2c3d479", 4, Microsoft, true, true},
+	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true, true},
+	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true, true},
 
-	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false},
-	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false},
-	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false},
-	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, Invalid, false},
-	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, Invalid, false},
-	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, Invalid, false},
+	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false, false},
+	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false, false},
+	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false, false},
+	{"f47ac10b-58cc-5372-a56740e02b2c3d479", 0, Invalid, false, false},
+	{"f47ac10b-58cc-5372-a567-0e02-2c3d479", 0, Invalid, false, false},
+	{"g47ac10b-58cc-4372-a567-0e02b2c3d479", 0, Invalid, false, false},
 
-	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, RFC4122, true},
-	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, Invalid, false},
-	{"f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, Invalid, false},
+	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, RFC4122, true, false},
+	{"{f47ac10b-58cc-0372-8567-0e02b2c3d479", 0, Invalid, false, false},
+	{"f47ac10b-58cc-0372-8567-0e02b2c3d479}", 0, Invalid, false, false},
 
-	{"f47ac10b58cc037285670e02b2c3d479", 0, RFC4122, true},
-	{"f47ac10b58cc037285670e02b2c3d4790", 0, Invalid, false},
-	{"f47ac10b58cc037285670e02b2c3d47", 0, Invalid, false},
+	{"f47ac10b58cc037285670e02b2c3d479", 0, RFC4122, true, false},
+	{"f47ac10b58cc037285670e02b2c3d4790", 0, Invalid, false, false},
+	{"f47ac10b58cc037285670e02b2c3d47", 0, Invalid, false, false},
 
-	{"01ee836c-e7c9-619d-929a-525400475911", 6, RFC4122, true},
-	{"018bd12c-58b0-7683-8a5b-8752d0e86651", 7, RFC4122, true},
+	{"01ee836c-e7c9-619d-929a-525400475911", 6, RFC4122, true, true},
+	{"018bd12c-58b0-7683-8a5b-8752d0e86651", 7, RFC4122, true, true},
 }
 
 var constants = []struct {
@@ -93,6 +94,23 @@ var constants = []struct {
 	{Future, "Future"},
 	{Domain(17), "Domain17"},
 	{Variant(42), "BadVariant42"},
+}
+
+func testStrict(t *testing.T, in string, tt test) {
+	uuid, err := StrictParse(in)
+	if ok := (err == nil); ok != tt.isStrictUUID {
+		t.Errorf("StrictParse(%s) got %v expected %v\b", in, ok, tt.isStrictUUID)
+	}
+	if err != nil {
+		return
+	}
+
+	if v := uuid.Variant(); v != tt.variant {
+		t.Errorf("Variant(%s) got %d expected %d\b", in, v, tt.variant)
+	}
+	if v := uuid.Version(); v != tt.version {
+		t.Errorf("Version(%s) got %d expected %d\b", in, v, tt.version)
+	}
 }
 
 func testTest(t *testing.T, in string, tt test) {
@@ -112,6 +130,20 @@ func testTest(t *testing.T, in string, tt test) {
 	}
 }
 
+func testStrictBytes(t *testing.T, in []byte, tt test) {
+	uuid, err := StrictParseBytes(in)
+	if ok := (err == nil); ok != tt.isStrictUUID {
+		t.Errorf("StrictParseBytes(%s) got %v expected %v\b", in, ok, tt.isStrictUUID)
+	}
+	if err != nil {
+		return
+	}
+	suuid, _ := StrictParse(string(in))
+	if uuid != suuid {
+		t.Errorf("StrictParse(%s) got %v expected %v\b", in, uuid, suuid)
+	}
+}
+
 func testBytes(t *testing.T, in []byte, tt test) {
 	uuid, err := ParseBytes(in)
 	if ok := (err == nil); ok != tt.isuuid {
@@ -122,7 +154,7 @@ func testBytes(t *testing.T, in []byte, tt test) {
 	}
 	suuid, _ := Parse(string(in))
 	if uuid != suuid {
-		t.Errorf("ParseBytes(%s) got %v expected %v\b", in, uuid, suuid)
+		t.Errorf("Parse(%s) got %v expected %v\b", in, uuid, suuid)
 	}
 }
 
@@ -130,6 +162,9 @@ func TestUUID(t *testing.T) {
 	for _, tt := range tests {
 		testTest(t, tt.in, tt)
 		testTest(t, strings.ToUpper(tt.in), tt)
+		testStrict(t, tt.in, tt)
+		testStrict(t, strings.ToUpper(tt.in), tt)
+		testStrictBytes(t, []byte(tt.in), tt)
 		testBytes(t, []byte(tt.in), tt)
 	}
 }
@@ -606,6 +641,32 @@ func FuzzFromBytes(f *testing.F) {
 	})
 }
 
+// TestStrictValidate checks various scenarios for the StrictValidate function
+func TestStrictValidate(t *testing.T) {
+	testCases := []struct {
+		name   string
+		input  string
+		expect error
+	}{
+		{"Valid UUID", "123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Valid UUID with URN", "urn:uuid:123e4567-e89b-12d3-a456-426655440000", nil},
+		{"Nonstandard UUID with Braces", "{123e4567-e89b-12d3-a456-426655440000}", errors.New("invalid UUID length: 38")},
+		{"Nonstandard UUID No Hyphens", "123e4567e89b12d3a456426655440000", errors.New("invalid UUID length: 32")},
+		{"Invalid UUID", "invalid-uuid", errors.New("invalid UUID length: 12")},
+		{"Invalid Length", "123", fmt.Errorf("invalid UUID length: %d", len("123"))},
+		{"Invalid URN Prefix", "urn:test:123e4567-e89b-12d3-a456-426655440000", fmt.Errorf("invalid urn prefix: %q", "urn:test:")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := StrictValidate(tc.input)
+			if (err != nil) != (tc.expect != nil) || (err != nil && err.Error() != tc.expect.Error()) {
+				t.Errorf("StrictValidate(%q) = %v, want %v", tc.input, err, tc.expect)
+			}
+		})
+	}
+}
+
 // TestValidate checks various scenarios for the Validate function
 func TestValidate(t *testing.T) {
 	testCases := []struct {
@@ -634,8 +695,10 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-var asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
-var asBytes = []byte(asString)
+var (
+	asString = "f47ac10b-58cc-0372-8567-0e02b2c3d479"
+	asBytes  = []byte(asString)
+)
 
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -900,7 +963,7 @@ func TestVersion7Monotonicity(t *testing.T) {
 type fakeRand struct{}
 
 func (g fakeRand) Read(bs []byte) (int, error) {
-	for i, _ := range bs {
+	for i := range bs {
 		bs[i] = 0x88
 	}
 	return len(bs), nil
