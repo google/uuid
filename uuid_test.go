@@ -414,11 +414,23 @@ func TestMD5(t *testing.T) {
 	}
 }
 
+func BenchmarkMD5(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = NewMD5(NameSpaceDNS, []byte("python.org"))
+	}
+}
+
 func TestSHA1(t *testing.T) {
 	uuid := NewSHA1(NameSpaceDNS, []byte("python.org")).String()
 	want := "886313e1-3b8a-5372-9b90-0c9aee199e5d"
 	if uuid != want {
 		t.Errorf("SHA1: got %q expected %q", uuid, want)
+	}
+}
+
+func BenchmarkSHA1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = NewSHA1(NameSpaceDNS, []byte("python.org"))
 	}
 }
 
