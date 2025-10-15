@@ -928,3 +928,25 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func unixMilli(msec int64) time.Time {
+	return time.Unix(msec/1e3, (msec%1e3)*1e6)
+}
+
+func TestVersion7MaxTime(t *testing.T) {
+	timeNow = func() time.Time {
+		return unixMilli((1 << 48) - 1) // max time for uuid v7
+	}
+	defer func() {
+		timeNow = time.Now
+	}()
+
+	SetRand(fakeRand{})
+	defer SetRand(nil)
+
+	u := Must(NewV7())
+	want := "ffffffff-ffff-7000-8888-888888888888"
+	if u.String() != want {
+		t.Errorf("time overflow: got %q, want %q", u.String(), want)
+	}
+}
