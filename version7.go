@@ -89,10 +89,11 @@ func getV7Time() (milli, seq int64) {
 	timeMu.Lock()
 	defer timeMu.Unlock()
 
-	nano := timeNow().UnixNano()
-	milli = nano / nanoPerMilli
+	t := timeNow()
+	nano := t.Nanosecond()
+	milli = t.Unix()*1e3 + int64(nano/nanoPerMilli)
 	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
-	seq = (nano - milli*nanoPerMilli) >> 8
+	seq = int64(nano%nanoPerMilli) >> 8
 	now := milli<<12 + seq
 	if now <= lastV7time {
 		now = lastV7time + 1
