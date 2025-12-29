@@ -928,3 +928,44 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+// TestCompatibility is to test if externally generated UUIDs can be parsed correctly.
+func TestCompatibility(t *testing.T) {
+	testcases := []struct {
+		input   string
+		version Version
+		variant Variant
+		time    Time
+	}{
+		{"17c3c7fa-e49a-11f0-8a15-22222d34d411", Version(1), RFC4122, 139862938923288570}, // Python: uuid.uuid1()
+		{"416349bc-3b93-475c-830b-ff7b967e7f21", Version(4), RFC4122, 0},                  // Python: uuid.uuid4()
+		{"1f0e4913-6530-6eec-a6da-d0c1b525246e", Version(6), RFC4122, 139862900781289196}, // Python: uuid.uuid6()
+		{"019b697b-5cc2-74a0-8179-94bc84f4fa49", Version(7), RFC4122, 139862940510100000}, // Python: uuid.uuid7()
+		{"1f0e4916-3394-6114-b891-1b06f5c9afb5", Version(6), RFC4122, 139862901534572820}, // util-linux: uuidgen -6
+		{"019b697c-849a-704a-9eb6-f5fee089b533", Version(7), RFC4122, 139862941267460000}, // util-linux: uuidgen -7
+		{"8c233900-df42-4f08-9f01-6ae617c6965d", Version(4), RFC4122, 0},                  // js: self.crypto.randomUUID()
+		{"c870c5a2-e49b-11f0-b116-22222d34d411", Version(1), RFC4122, 139862946182383010}, // Perl: UUID::generate_v1()
+		{"1f0e49bc-bef8-68ee-9471-22222d34d411", Version(6), RFC4122, 139862946241022190}, // Perl: UUID::generate_v6()
+		{"019b6984-3286-7b40-b6a3-c966578bd849", Version(7), RFC4122, 139862946300220000}, // Perl: UUID::generate_v7()
+	}
+
+	for _, tc := range testcases {
+		u, err := Parse(tc.input)
+		if err != nil {
+			t.Errorf("Failed to parse %s", tc.input)
+			break
+		}
+		if tc.version != u.Version() {
+			t.Errorf("Expected v%d, got v%d for %s", tc.version, u.Version(), tc.input)
+			break
+		}
+		if tc.variant != u.Variant() {
+			t.Errorf("Expected variant %s, got %s for %s", tc.variant, u.Variant(), tc.input)
+			break
+		}
+		if tc.time > 0 && tc.time != u.Time() {
+			t.Errorf("Expected time %d, got time %d for %s", tc.time, u.Time(), tc.input)
+			break
+		}
+	}
+}
