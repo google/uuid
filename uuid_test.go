@@ -766,6 +766,29 @@ func BenchmarkUUID_NewPooled(b *testing.B) {
 	})
 }
 
+func BenchmarkUUID_NewV7(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := NewV7()
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUID_NewV7Pooled(b *testing.B) {
+	EnableRandPool()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := NewV7()
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkUUIDs_Strings(b *testing.B) {
 	uuid1, err := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
 	if err != nil {

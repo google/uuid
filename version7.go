@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"io"
+	"sync/atomic"
 )
 
 // UUID version 7 features a time-ordered value field derived from the widely
@@ -77,28 +78,28 @@ func makeV7(uuid []byte) {
 // lastV7time is the last time we returned stored as:
 //
 //	52 bits of time in milliseconds since epoch
-//	12 bits of (fractional nanoseconds) >> 8
-var lastV7time int64
+//	12 bits of sequence number.
+var lastV7time atomic.Int64
 
 const nanoPerMilli = 1000000
 
-// getV7Time returns the time in milliseconds and nanoseconds / 256.
+// getV7Time returns the time in milliseconds and the sequence number.
 // The returned (milli << 12 + seq) is guaranteed to be greater than
 // (milli << 12 + seq) returned by any previous call to getV7Time.
 func getV7Time() (milli, seq int64) {
-	timeMu.Lock()
-	defer timeMu.Unlock()
+	milli = timeNow().UnixMilli()
 
-	nano := timeNow().UnixNano()
-	milli = nano / nanoPerMilli
-	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
-	seq = (nano - milli*nanoPerMilli) >> 8
-	now := milli<<12 + seq
-	if now <= lastV7time {
-		now = lastV7time + 1
-		milli = now >> 12
-		seq = now & 0xfff
+	for {
+		oldVal := lastV7time.Load()
+		if milli <= (oldVal+1)>>12 {
+			break
+		}
+		lastV7time.CompareAndSwap(oldVal, (milli<<12)-1)
 	}
-	lastV7time = now
+
+	result := lastV7time.Add(1)
+	milli = result >> 12
+	seq = result & 0xfff
+
 	return milli, seq
 }
