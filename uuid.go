@@ -52,7 +52,7 @@ var (
 	ErrInvalidBracketedFormat = errors.New("invalid bracketed UUID format")
 )
 
-type URNPrefixError struct { prefix string }
+type URNPrefixError struct{ prefix string }
 
 func (e URNPrefixError) Error() string {
 	return fmt.Sprintf("invalid urn prefix: %q", e.prefix)
@@ -199,6 +199,16 @@ func MustParse(s string) UUID {
 	return uuid
 }
 
+// MustParseBytes is like ParseBytes but panics if the byte slice cannot be parsed.
+// It simplifies safe initialization of global variables holding compiled UUIDs.
+func MustParseBytes(b []byte) UUID {
+	uuid, err := ParseBytes(b)
+	if err != nil {
+		panic(`uuid: ParseBytes(` + string(b) + `): ` + err.Error())
+	}
+	return uuid
+}
+
 // FromBytes creates a new UUID from a byte slice. Returns an error if the slice
 // does not have a length of 16. The bytes are copied from the slice.
 func FromBytes(b []byte) (uuid UUID, err error) {
@@ -215,10 +225,11 @@ func Must(uuid UUID, err error) UUID {
 }
 
 // Validate returns an error if s is not a properly formatted UUID in one of the following formats:
-//   xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-//   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//   {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+//
 // It returns an error if the format is invalid, otherwise nil.
 func Validate(s string) error {
 	switch len(s) {
