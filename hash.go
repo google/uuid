@@ -16,7 +16,10 @@ var (
 	NameSpaceURL  = MustParse("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 	NameSpaceOID  = MustParse("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 	NameSpaceX500 = MustParse("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-	Nil           UUID // empty UUID, all zeros
+
+	// Nil is the "nil UUID" as defined in RFC 9562.
+	// It is composed of all zeros: 00000000-0000-0000-0000-000000000000.
+	Nil UUID
 
 	// The Max UUID is special form of UUID that is specified to have all 128 bits set to 1.
 	Max = UUID{

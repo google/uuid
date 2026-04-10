@@ -315,6 +315,11 @@ func (uuid UUID) Version() Version {
 	return Version(uuid[6] >> 4)
 }
 
+// IsNil returns true if uuid is the Nil UUID.
+func (uuid UUID) IsNil() bool {
+	return uuid == Nil
+}
+
 func (v Version) String() string {
 	if v > 15 {
 		return fmt.Sprintf("BAD_VERSION_%d", v)
