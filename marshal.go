@@ -13,6 +13,14 @@ func (uuid UUID) MarshalText() ([]byte, error) {
 	return js[:], nil
 }
 
+// AppendText implements encoding.TextAppender.
+// It appends the textual representation of uuid to b and returns the result.
+func (uuid UUID) AppendText(b []byte) ([]byte, error) {
+	var js [36]byte
+	encodeHex(js[:], uuid)
+	return append(b, js[:]...), nil
+}
+
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (uuid *UUID) UnmarshalText(data []byte) error {
 	id, err := ParseBytes(data)
@@ -26,6 +34,12 @@ func (uuid *UUID) UnmarshalText(data []byte) error {
 // MarshalBinary implements encoding.BinaryMarshaler.
 func (uuid UUID) MarshalBinary() ([]byte, error) {
 	return uuid[:], nil
+}
+
+// AppendBinary implements encoding.BinaryAppender.
+// It appends the binary form of uuid to b and returns the result.
+func (uuid UUID) AppendBinary(b []byte) ([]byte, error) {
+	return append(b, uuid[:]...), nil
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
