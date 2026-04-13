@@ -928,3 +928,82 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func TestAppendText(t *testing.T) {
+	data := UUID{
+		0x7d, 0x44, 0x48, 0x40,
+		0x9d, 0xc0,
+		0x11, 0xd1,
+		0xb2, 0x45,
+		0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2,
+	}
+	expected := "7d444840-9dc0-11d1-b245-5ffdce74fad2"
+
+	// Append to nil.
+	b, err := data.AppendText(nil)
+	if err != nil {
+		t.Fatalf("AppendText(nil) returned error: %v", err)
+	}
+	if string(b) != expected {
+		t.Errorf("AppendText(nil) = %q, want %q", b, expected)
+	}
+
+	// Append to an existing prefix.
+	prefix := []byte("prefix:")
+	b, err = data.AppendText(prefix)
+	if err != nil {
+		t.Fatalf("AppendText(prefix) returned error: %v", err)
+	}
+	if string(b) != "prefix:"+expected {
+		t.Errorf("AppendText(prefix) = %q, want %q", b, "prefix:"+expected)
+	}
+
+	// AppendText output must match MarshalText output.
+	mt, _ := data.MarshalText()
+	at, _ := data.AppendText(nil)
+	if string(mt) != string(at) {
+		t.Errorf("AppendText(nil) = %q; MarshalText() = %q: mismatch", at, mt)
+	}
+}
+
+func TestAppendBinary(t *testing.T) {
+	data := UUID{
+		0x7d, 0x44, 0x48, 0x40,
+		0x9d, 0xc0,
+		0x11, 0xd1,
+		0xb2, 0x45,
+		0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2,
+	}
+
+	// Append to nil.
+	b, err := data.AppendBinary(nil)
+	if err != nil {
+		t.Fatalf("AppendBinary(nil) returned error: %v", err)
+	}
+	var recovered UUID
+	copy(recovered[:], b)
+	if recovered != data {
+		t.Errorf("AppendBinary(nil) round-trip failed: got %x, want %x", b, data)
+	}
+
+	// Append to an existing prefix.
+	prefix := []byte{0xde, 0xad}
+	b, err = data.AppendBinary(prefix)
+	if err != nil {
+		t.Fatalf("AppendBinary(prefix) returned error: %v", err)
+	}
+	if len(b) != 2+16 {
+		t.Fatalf("AppendBinary(prefix): expected length %d, got %d", 18, len(b))
+	}
+	copy(recovered[:], b[2:])
+	if recovered != data {
+		t.Errorf("AppendBinary(prefix) payload = %x, want %x", b[2:], data)
+	}
+
+	// AppendBinary output must match MarshalBinary output.
+	mb, _ := data.MarshalBinary()
+	ab, _ := data.AppendBinary(nil)
+	if string(mb) != string(ab) {
+		t.Errorf("AppendBinary(nil) = %x; MarshalBinary() = %x: mismatch", ab, mb)
+	}
+}
