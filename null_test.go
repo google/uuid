@@ -10,6 +10,21 @@ import (
 	"testing"
 )
 
+func TestTryParse(t *testing.T) {
+	if got := TryParse(New().String()); !got.Valid {
+		t.Error("expected output to be valid")
+	}
+	if got := TryParse(Nil.String()); !got.Valid {
+		t.Error("expected output to be valid")
+	}
+	if got := TryParse("wrong"); got.Valid {
+		t.Error("expected output to not be valid")
+	}
+	if got := TryParse(""); got.Valid {
+		t.Error("expected output to not be valid")
+	}
+}
+
 func TestNullUUIDScan(t *testing.T) {
 	var u UUID
 	var nu NullUUID

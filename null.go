@@ -31,6 +31,17 @@ type NullUUID struct {
 	Valid bool // Valid is true if UUID is not NULL
 }
 
+// TryParse parses the given string and returns a NullUUID.
+// The UUID is set to the parsed value and Valid is set to true if parsing succeeds.
+// If parsing fails, Valid is set to false and UUID is left in its zero state.
+func TryParse(s string) NullUUID {
+	v, err := Parse(s)
+	if err != nil {
+		return NullUUID{Valid: false}
+	}
+	return NullUUID{UUID: v, Valid: true}
+}
+
 // Scan implements the SQL driver.Scanner interface.
 func (nu *NullUUID) Scan(value interface{}) error {
 	if value == nil {
