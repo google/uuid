@@ -38,6 +38,32 @@ func TestNullUUIDScan(t *testing.T) {
 	}
 }
 
+func TestNullUUIDScanEmptyIsNull(t *testing.T) {
+	// An empty string or empty []byte should be treated as NULL (Valid=false),
+	// consistent with how UUID.Scan handles empty input. See issue #109.
+	var nu NullUUID
+
+	if err := nu.Scan(""); err != nil {
+		t.Fatalf("unexpected error scanning empty string: %v", err)
+	}
+	if nu.Valid {
+		t.Error("expected Valid=false after scanning empty string, got true")
+	}
+	if nu.UUID != Nil {
+		t.Errorf("expected Nil UUID after scanning empty string, got %v", nu.UUID)
+	}
+
+	if err := nu.Scan([]byte{}); err != nil {
+		t.Fatalf("unexpected error scanning empty []byte: %v", err)
+	}
+	if nu.Valid {
+		t.Error("expected Valid=false after scanning empty []byte, got true")
+	}
+	if nu.UUID != Nil {
+		t.Errorf("expected Nil UUID after scanning empty []byte, got %v", nu.UUID)
+	}
+}
+
 func TestNullUUIDValue(t *testing.T) {
 	var u UUID
 	var nu NullUUID

@@ -38,6 +38,22 @@ func (nu *NullUUID) Scan(value interface{}) error {
 		return nil
 	}
 
+	// UUID.Scan treats empty string and empty []byte as a null UUID (returning
+	// no error). Mirror that behavior here so NullUUID.Valid reflects the same
+	// null semantics instead of incorrectly reporting Valid=true for empty input.
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			nu.UUID, nu.Valid = Nil, false
+			return nil
+		}
+	case []byte:
+		if len(v) == 0 {
+			nu.UUID, nu.Valid = Nil, false
+			return nil
+		}
+	}
+
 	err := nu.UUID.Scan(value)
 	if err != nil {
 		nu.Valid = false
