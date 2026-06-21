@@ -91,8 +91,19 @@ func getV7Time() (milli, seq int64) {
 
 	nano := timeNow().UnixNano()
 	milli = nano / nanoPerMilli
-	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
-	seq = (nano - milli*nanoPerMilli) >> 8
+	if hasSubMilliClock {
+		// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
+		seq = (nano - milli*nanoPerMilli) >> 8
+	} else {
+		// The platform's wall clock has only millisecond resolution (e.g. on
+		// wasm), so the sub-millisecond fraction above would always be zero.
+		// Fill the 12-bit rand_a field with random data instead, as permitted
+		// by RFC 9562. Ordering within a millisecond is still preserved by the
+		// lastV7time+1 step below.
+		var b [2]byte
+		randomBits(b[:])
+		seq = int64(b[0]&0x0f)<<8 | int64(b[1])
+	}
 	now := milli<<12 + seq
 	if now <= lastV7time {
 		now = lastV7time + 1
