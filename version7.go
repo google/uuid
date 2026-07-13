@@ -42,6 +42,14 @@ func NewV7FromReader(r io.Reader) (UUID, error) {
 	return uuid, nil
 }
 
+// NewV7String creates a new random UUID and returns it as a string or panics.
+// NewV7String is equivalent to the expression
+//
+//	uuid.Must(uuid.NewV7()).String()
+func NewV7String() string {
+	return Must(NewV7()).String()
+}
+
 // makeV7 fill 48 bits time (uuid[0] - uuid[5]), set version b0111 (uuid[6])
 // uuid[8] already has the right version number (Variant is 10)
 // see function NewV7 and NewV7FromReader
