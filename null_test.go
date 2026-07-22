@@ -212,3 +212,37 @@ func TestNullUUIDUnmarshalJSON(t *testing.T) {
 		t.Errorf("expected nil when unmarshalling null, got %s", err)
 	}
 }
+
+func TestNullUUIDScanEmpty(t *testing.T) {
+	var nu NullUUID
+	// Start from a valid value to ensure empty clears Valid.
+	if err := nu.Scan("12345678-abcd-1234-abcd-0123456789ab"); err != nil {
+		t.Fatalf("setup scan: %v", err)
+	}
+	if !nu.Valid {
+		t.Fatal("expected Valid after setup")
+	}
+
+	if err := nu.Scan(""); err != nil {
+		t.Fatalf("empty string scan: %v", err)
+	}
+	if nu.Valid {
+		t.Error("expected Valid=false after scanning empty string")
+	}
+	if nu.UUID != Nil {
+		t.Errorf("expected Nil UUID after empty string, got %v", nu.UUID)
+	}
+
+	if err := nu.Scan("12345678-abcd-1234-abcd-0123456789ab"); err != nil {
+		t.Fatalf("re-setup scan: %v", err)
+	}
+	if err := nu.Scan([]byte{}); err != nil {
+		t.Fatalf("empty []byte scan: %v", err)
+	}
+	if nu.Valid {
+		t.Error("expected Valid=false after scanning empty []byte")
+	}
+	if nu.UUID != Nil {
+		t.Errorf("expected Nil UUID after empty []byte, got %v", nu.UUID)
+	}
+}

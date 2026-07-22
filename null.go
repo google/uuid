@@ -38,6 +38,21 @@ func (nu *NullUUID) Scan(value interface{}) error {
 		return nil
 	}
 
+	// Treat empty database values as NULL. UUID.Scan("") leaves a Nil UUID
+	// and returns nil, which would otherwise mark Valid=true (issue #109).
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			nu.UUID, nu.Valid = Nil, false
+			return nil
+		}
+	case []byte:
+		if len(v) == 0 {
+			nu.UUID, nu.Valid = Nil, false
+			return nil
+		}
+	}
+
 	err := nu.UUID.Scan(value)
 	if err != nil {
 		nu.Valid = false
