@@ -10,13 +10,15 @@ import (
 	"hash"
 )
 
-// Well known namespace IDs and UUIDs
+// Well known namespace IDs.
 var (
 	NameSpaceDNS  = MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 	NameSpaceURL  = MustParse("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 	NameSpaceOID  = MustParse("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 	NameSpaceX500 = MustParse("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
-	Nil           UUID // empty UUID, all zeros
+
+	// Nil is the empty UUID, with all 128 bits set to zero.
+	Nil UUID
 
 	// The Max UUID is special form of UUID that is specified to have all 128 bits set to 1.
 	Max = UUID{
@@ -45,7 +47,7 @@ func NewHash(h hash.Hash, space UUID, data []byte, version int) UUID {
 // NewMD5 returns a new MD5 (Version 3) UUID based on the
 // supplied name space and data.  It is the same as calling:
 //
-//  NewHash(md5.New(), space, data, 3)
+//	NewHash(md5.New(), space, data, 3)
 func NewMD5(space UUID, data []byte) UUID {
 	return NewHash(md5.New(), space, data, 3)
 }
@@ -53,7 +55,7 @@ func NewMD5(space UUID, data []byte) UUID {
 // NewSHA1 returns a new SHA1 (Version 5) UUID based on the
 // supplied name space and data.  It is the same as calling:
 //
-//  NewHash(sha1.New(), space, data, 5)
+//	NewHash(sha1.New(), space, data, 5)
 func NewSHA1(space UUID, data []byte) UUID {
 	return NewHash(sha1.New(), space, data, 5)
 }
