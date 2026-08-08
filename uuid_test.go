@@ -928,3 +928,132 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 		u1 = u2
 	}
 }
+
+func TestAppendText(t *testing.T) {
+	data := UUID{
+		0x7d, 0x44, 0x48, 0x40,
+		0x9d, 0xc0,
+		0x11, 0xd1,
+		0xb2, 0x45,
+		0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2,
+	}
+	expected := "7d444840-9dc0-11d1-b245-5ffdce74fad2"
+
+	b, err := data.AppendText(nil)
+	if err != nil {
+		t.Fatalf("AppendText(nil) returned error: %v", err)
+	}
+	if string(b) != expected {
+		t.Errorf("AppendText(nil) = %q, want %q", b, expected)
+	}
+
+	prefix := []byte("prefix:")
+	b, err = data.AppendText(prefix)
+	if err != nil {
+		t.Fatalf("AppendText(prefix) returned error: %v", err)
+	}
+	if string(b) != "prefix:"+expected {
+		t.Errorf("AppendText(prefix) = %q, want %q", b, "prefix:"+expected)
+	}
+
+	mt, _ := data.MarshalText()
+	at, _ := data.AppendText(nil)
+	if !bytes.Equal(mt, at) {
+		t.Errorf("AppendText(nil) = %q; MarshalText() = %q: mismatch", at, mt)
+	}
+
+	// Reusing a buffer with spare capacity should not allocate a new backing array.
+	buf := make([]byte, 0, 64)
+	buf = append(buf, "id="...)
+	out, err := data.AppendText(buf)
+	if err != nil {
+		t.Fatalf("AppendText(buf) returned error: %v", err)
+	}
+	if string(out) != "id="+expected {
+		t.Errorf("AppendText(buf) = %q, want %q", out, "id="+expected)
+	}
+	if &out[0] != &buf[:1][0] {
+		t.Errorf("AppendText did not reuse buffer capacity")
+	}
+}
+
+func TestAppendBinary(t *testing.T) {
+	data := UUID{
+		0x7d, 0x44, 0x48, 0x40,
+		0x9d, 0xc0,
+		0x11, 0xd1,
+		0xb2, 0x45,
+		0x5f, 0xfd, 0xce, 0x74, 0xfa, 0xd2,
+	}
+
+	b, err := data.AppendBinary(nil)
+	if err != nil {
+		t.Fatalf("AppendBinary(nil) returned error: %v", err)
+	}
+	var recovered UUID
+	copy(recovered[:], b)
+	if recovered != data {
+		t.Errorf("AppendBinary(nil) round-trip failed: got %x, want %x", b, data)
+	}
+
+	prefix := []byte{0xde, 0xad}
+	b, err = data.AppendBinary(prefix)
+	if err != nil {
+		t.Fatalf("AppendBinary(prefix) returned error: %v", err)
+	}
+	if len(b) != 18 {
+		t.Fatalf("AppendBinary(prefix): expected length 18, got %d", len(b))
+	}
+	copy(recovered[:], b[2:])
+	if recovered != data {
+		t.Errorf("AppendBinary(prefix) payload = %x, want %x", b[2:], data)
+	}
+
+	mb, _ := data.MarshalBinary()
+	ab, _ := data.AppendBinary(nil)
+	if !bytes.Equal(mb, ab) {
+		t.Errorf("AppendBinary(nil) = %x; MarshalBinary() = %x: mismatch", ab, mb)
+	}
+}
+
+func TestNullUUIDAppendText(t *testing.T) {
+	valid := NullUUID{UUID: MustParse("7d444840-9dc0-11d1-b245-5ffdce74fad2"), Valid: true}
+	b, err := valid.AppendText([]byte("x="))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != "x=7d444840-9dc0-11d1-b245-5ffdce74fad2" {
+		t.Errorf("valid AppendText = %q", b)
+	}
+
+	invalid := NullUUID{}
+	b, err = invalid.AppendText([]byte("x="))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(b) != "x=null" {
+		t.Errorf("invalid AppendText = %q", b)
+	}
+}
+
+func TestNullUUIDAppendBinary(t *testing.T) {
+	u := MustParse("7d444840-9dc0-11d1-b245-5ffdce74fad2")
+	valid := NullUUID{UUID: u, Valid: true}
+	b, err := valid.AppendBinary([]byte{0x01})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(b) != 17 || !bytes.Equal(b[1:], u[:]) {
+		t.Errorf("valid AppendBinary = %x", b)
+	}
+
+	invalid := NullUUID{}
+	prefix := []byte{0x01}
+	b, err = invalid.AppendBinary(prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(b, prefix) {
+		t.Errorf("invalid AppendBinary modified buffer: %x", b)
+	}
+}

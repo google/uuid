@@ -13,6 +13,16 @@ func (uuid UUID) MarshalText() ([]byte, error) {
 	return js[:], nil
 }
 
+// AppendText implements encoding.TextAppender.
+// It appends the 36-byte textual form of uuid to b and returns the extended buffer.
+func (uuid UUID) AppendText(b []byte) ([]byte, error) {
+	// Grow by 36 in one append, then fill the new space in place.
+	n := len(b)
+	b = append(b, make([]byte, 36)...)
+	encodeHex(b[n:], uuid)
+	return b, nil
+}
+
 // UnmarshalText implements encoding.TextUnmarshaler.
 func (uuid *UUID) UnmarshalText(data []byte) error {
 	id, err := ParseBytes(data)
@@ -26,6 +36,12 @@ func (uuid *UUID) UnmarshalText(data []byte) error {
 // MarshalBinary implements encoding.BinaryMarshaler.
 func (uuid UUID) MarshalBinary() ([]byte, error) {
 	return uuid[:], nil
+}
+
+// AppendBinary implements encoding.BinaryAppender.
+// It appends the 16-byte binary form of uuid to b and returns the extended buffer.
+func (uuid UUID) AppendBinary(b []byte) ([]byte, error) {
+	return append(b, uuid[:]...), nil
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
