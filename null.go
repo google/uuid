@@ -66,6 +66,15 @@ func (nu NullUUID) MarshalBinary() ([]byte, error) {
 	return []byte(nil), nil
 }
 
+// AppendBinary implements encoding.BinaryAppender.
+// If nu is not valid, nothing is appended.
+func (nu NullUUID) AppendBinary(b []byte) ([]byte, error) {
+	if nu.Valid {
+		return append(b, nu.UUID[:]...), nil
+	}
+	return b, nil
+}
+
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
 func (nu *NullUUID) UnmarshalBinary(data []byte) error {
 	if len(data) != 16 {
@@ -83,6 +92,15 @@ func (nu NullUUID) MarshalText() ([]byte, error) {
 	}
 
 	return jsonNull, nil
+}
+
+// AppendText implements encoding.TextAppender.
+// If nu is not valid, "null" is appended.
+func (nu NullUUID) AppendText(b []byte) ([]byte, error) {
+	if nu.Valid {
+		return nu.UUID.AppendText(b)
+	}
+	return append(b, jsonNull...), nil
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
