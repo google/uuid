@@ -1,6 +1,7 @@
 package uuid
 
 import (
+	"sync"
 	"testing"
 	"time"
 )
@@ -63,6 +64,49 @@ func TestNewV6FromTimeGeneratesUniqueUUIDs(t *testing.T) {
 	// Check we added all the UIDs
 	if len(ids) != runs {
 		t.Errorf("got %d UUIDs, want %d", len(ids), runs)
+	}
+}
+
+func TestNewV6WithTimeConcurrentUnique(t *testing.T) {
+	// NewV6WithTime must take the clock-sequence lock so concurrent generation
+	// for the same timestamp stays race-free and keeps producing unique values.
+	// For a fixed timestamp the UUID varies only by the clock sequence, so up
+	// to 16384 calls must all be unique. Run with -race to also surface the
+	// underlying data race directly.
+	fixed := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	const goroutines = 8
+	const perGoroutine = 2000 // 16000 total < 16384 clock-sequence values
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	seen := make(map[UUID]struct{}, goroutines*perGoroutine)
+	dups := 0
+
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < perGoroutine; i++ {
+				id, err := NewV6WithTime(&fixed)
+				if err != nil {
+					t.Errorf("NewV6WithTime returned unexpected error %v", err)
+					return
+				}
+				mu.Lock()
+				if _, ok := seen[id]; ok {
+					dups++
+				} else {
+					seen[id] = struct{}{}
+				}
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+
+	if dups != 0 {
+		t.Errorf("got %d duplicate V6 UUIDs from concurrent NewV6WithTime calls", dups)
 	}
 }
 

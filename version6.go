@@ -37,7 +37,12 @@ func NewV6() (UUID, error) {
 // are generating multiple UUIDs, it is recommended to increment the time.
 // If getTime fails to return the current NewV6WithTime returns Nil and an error.
 func NewV6WithTime(customTime *time.Time) (UUID, error) {
+	// getTime reads and mutates the shared clock sequence state, which is
+	// guarded by timeMu (see GetTime). Take the lock so concurrent generation
+	// stays race-free and keeps producing unique values.
+	timeMu.Lock()
 	now, seq, err := getTime(customTime)
+	timeMu.Unlock()
 	if err != nil {
 		return Nil, err
 	}
