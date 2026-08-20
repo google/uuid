@@ -28,13 +28,13 @@ type Variant byte
 // Constants returned by Variant.
 const (
 	Invalid   = Variant(iota) // Invalid UUID
-	RFC4122                   // The variant specified in RFC9562(obsoletes RFC4122).
+	RFC4122                   // The variant specified in RFC 9562 (obsoletes RFC 4122).
 	Reserved                  // Reserved, NCS backward compatibility.
 	Microsoft                 // Reserved, Microsoft Corporation backward compatibility.
 	Future                    // Reserved for future definition.
 )
 
-// RFC9562 added V6 and V7 of UUID, but did not change specification of V1 and V4
+// RFC 9562 added V6 and V7 of UUID, but did not change the specification of V1 and V4
 // implemented in this module. To avoid creating new major module version,
 // we still use RFC4122 for constant name.
 const Standard = RFC4122
@@ -78,7 +78,7 @@ func (e invalidLengthError) Is(target error) bool {
 
 var ErrInvalidLength = invalidLengthError{}
 
-// IsInvalidLengthError is matcher function for custom error invalidLengthError
+// IsInvalidLengthError is a matcher function for custom error invalidLengthError.
 func IsInvalidLengthError(err error) bool {
 	return errors.Is(err, ErrInvalidLength)
 }
