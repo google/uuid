@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 	"unsafe"
@@ -926,5 +927,37 @@ func TestVersion7MonotonicityStrict(t *testing.T) {
 			break
 		}
 		u1 = u2
+	}
+}
+
+func TestVersion7ConcurrentMonotonicity(t *testing.T) {
+	const goroutines = 16
+	const count = 5000
+	var wg sync.WaitGroup
+	errCh := make(chan error, goroutines)
+
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var prev UUID
+			for i := 0; i < count; i++ {
+				u, err := NewV7()
+				if err != nil {
+					errCh <- err
+					return
+				}
+				if i > 0 && Compare(prev, u) >= 0 {
+					errCh <- fmt.Errorf("monotonicity failed: %s >= %s", prev, u)
+					return
+				}
+				prev = u
+			}
+		}()
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		t.Fatal(err)
 	}
 }

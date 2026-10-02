@@ -6,6 +6,7 @@ package uuid
 
 import (
 	"io"
+	"sync/atomic"
 )
 
 // UUID version 7 features a time-ordered value field derived from the widely
@@ -85,20 +86,22 @@ const nanoPerMilli = 1000000
 // getV7Time returns the time in milliseconds and nanoseconds / 256.
 // The returned (milli << 12 + seq) is guaranteed to be greater than
 // (milli << 12 + seq) returned by any previous call to getV7Time.
+// Monotonicity is ensured lock-free via atomic Compare-And-Swap (CAS).
 func getV7Time() (milli, seq int64) {
-	timeMu.Lock()
-	defer timeMu.Unlock()
-
 	nano := timeNow().UnixNano()
 	milli = nano / nanoPerMilli
 	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
 	seq = (nano - milli*nanoPerMilli) >> 8
 	now := milli<<12 + seq
-	if now <= lastV7time {
-		now = lastV7time + 1
-		milli = now >> 12
-		seq = now & 0xfff
+
+	for {
+		last := atomic.LoadInt64(&lastV7time)
+		next := now
+		if next <= last {
+			next = last + 1
+		}
+		if atomic.CompareAndSwapInt64(&lastV7time, last, next) {
+			return next >> 12, next & 0xfff
+		}
 	}
-	lastV7time = now
-	return milli, seq
 }
