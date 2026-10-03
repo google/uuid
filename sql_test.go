@@ -5,6 +5,7 @@
 package uuid
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -109,5 +110,52 @@ func TestValue(t *testing.T) {
 	val, _ := uuid.Value()
 	if val != stringTest {
 		t.Error("Value() did not return expected string")
+	}
+}
+
+// TestScanErrorWrapping checks that Scan reports the underlying parse failure
+// rather than flattening it into an opaque string. The package exports
+// ErrInvalidLength, ErrInvalidUUIDFormat and ErrInvalidURNPrefix together with
+// the IsInvalidLengthError helper precisely so that callers can classify parse
+// errors with errors.Is/errors.As; Scan must not defeat that.
+func TestScanErrorWrapping(t *testing.T) {
+	testCases := []struct {
+		name  string
+		text  string
+		src   interface{}
+		match func(error) bool
+	}{
+		{"string/invalid-length", "12345", "12345", IsInvalidLengthError},
+		{"bytes/invalid-length", "12345", []byte("12345"), IsInvalidLengthError},
+		{"string/invalid-format", "12345678gabc1234abcd1234abcd1234", "12345678gabc1234abcd1234abcd1234", func(err error) bool {
+			return errors.Is(err, ErrInvalidUUIDFormat)
+		}},
+		{"bytes/invalid-format", "12345678gabc1234abcd1234abcd1234", []byte("12345678gabc1234abcd1234abcd1234"), func(err error) bool {
+			return errors.Is(err, ErrInvalidUUIDFormat)
+		}},
+		{"string/invalid-urn-prefix", "urn:test:123e4567-e89b-12d3-a456-426655440000", "urn:test:123e4567-e89b-12d3-a456-426655440000", func(err error) bool {
+			return errors.Is(err, ErrInvalidURNPrefix)
+		}},
+		{"bytes/invalid-urn-prefix", "urn:test:123e4567-e89b-12d3-a456-426655440000", []byte("urn:test:123e4567-e89b-12d3-a456-426655440000"), func(err error) bool {
+			return errors.Is(err, ErrInvalidURNPrefix)
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var uuid UUID
+			err := uuid.Scan(tc.src)
+			if err == nil {
+				t.Fatalf("Scan(%v) succeeded, want error", tc.src)
+			}
+			if !tc.match(err) {
+				t.Errorf("Scan(%v) = %v: underlying parse error type was lost", tc.src, err)
+			}
+			// The error message itself must be unchanged.
+			_, parseErr := Parse(tc.text)
+			if want := "Scan: " + parseErr.Error(); err.Error() != want {
+				t.Errorf("Scan(%v) message = %q, want %q", tc.src, err.Error(), want)
+			}
+		})
 	}
 }
