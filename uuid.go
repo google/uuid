@@ -23,9 +23,15 @@ type UUID [16]byte
 type Version byte
 
 // A Variant represents a UUID's variant.
+//
+// Any valid 128-bit UUID classifies into RFC4122, Reserved, Microsoft, or
+// Future. Invalid represents an uninitialized or non-UUID sentinel.
 type Variant byte
 
-// Constants returned by Variant.
+// Constants representing UUID variants.
+//
+// Any valid 128-bit UUID classifies into RFC4122, Reserved, Microsoft, or
+// Future. Invalid represents an uninitialized or non-UUID sentinel.
 const (
 	Invalid   = Variant(iota) // Invalid UUID
 	RFC4122                   // The variant specified in RFC9562(obsoletes RFC4122).
@@ -297,6 +303,10 @@ func encodeHex(dst []byte, uuid UUID) {
 }
 
 // Variant returns the variant encoded in uuid.
+//
+// Any valid 128-bit UUID classifies into RFC4122, Reserved, Microsoft, or
+// Future. Variant never returns Invalid, which represents an uninitialized or
+// non-UUID sentinel.
 func (uuid UUID) Variant() Variant {
 	switch {
 	case (uuid[8] & 0xc0) == 0x80:

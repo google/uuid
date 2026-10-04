@@ -60,6 +60,8 @@ var tests = []test{
 	{"f47ac10b-58cc-4372-e567-0e02b2c3d479", 4, Future, true},
 	{"f47ac10b-58cc-4372-f567-0e02b2c3d479", 4, Future, true},
 
+	// For invalid UUID strings, Parse returns an error and the test runner returns
+	// early without evaluating version or variant. Invalid is used as a placeholder.
 	{"f47ac10b158cc-5372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc25372-a567-0e02b2c3d479", 0, Invalid, false},
 	{"f47ac10b-58cc-53723a567-0e02b2c3d479", 0, Invalid, false},
@@ -161,6 +163,31 @@ func TestConstants(t *testing.T) {
 		} else if s := v.String(); s != tt.name {
 			v, _ := tt.c.(int)
 			t.Errorf("%x: Constant %T:%d gives %q, expected %q", x, tt.c, v, s, tt.name)
+		}
+	}
+}
+
+func TestVariantInvalid(t *testing.T) {
+	if s := Invalid.String(); s != "Invalid" {
+		t.Errorf("Invalid.String() = %q, want %q", s, "Invalid")
+	}
+	if s := Variant(0).String(); s != "Invalid" {
+		t.Errorf("Variant(0).String() = %q, want %q", s, "Invalid")
+	}
+}
+
+func TestVariantAllBytes(t *testing.T) {
+	for b := 0; b <= 0xff; b++ {
+		var u UUID
+		u[8] = byte(b)
+		v := u.Variant()
+		if v == Invalid {
+			t.Errorf("UUID with byte[8]=%#x returned Invalid variant", b)
+		}
+		switch v {
+		case RFC4122, Reserved, Microsoft, Future:
+		default:
+			t.Errorf("UUID with byte[8]=%#x returned unexpected variant %v", b, v)
 		}
 	}
 }
