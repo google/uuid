@@ -844,6 +844,27 @@ func TestVersion7(t *testing.T) {
 	}
 }
 
+func TestVersion7TimestampUsesAll48Bits(t *testing.T) {
+	timeMu.Lock()
+	previousTimeNow, previousLastV7time := timeNow, lastV7time
+	timeNow = func() time.Time { return time.UnixMilli(2 << 40) }
+	lastV7time = 0
+	timeMu.Unlock()
+	defer func() {
+		timeMu.Lock()
+		timeNow, lastV7time = previousTimeNow, previousLastV7time
+		timeMu.Unlock()
+	}()
+
+	id, err := NewV7()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := id[:6], []byte{2, 0, 0, 0, 0, 0}; !bytes.Equal(got, want) {
+		t.Errorf("v7 timestamp bytes = %x, want %x", got, want)
+	}
+}
+
 // uuid v7 time is only unix milliseconds, so
 // uuid1.Time() == uuid2.Time() is right, but uuid1 must != uuid2
 func TestVersion7_pooled(t *testing.T) {
